@@ -59,4 +59,5 @@ cluster <- function(dataset, num_pcs=NULL) {
 main <- function() {
   cluster("SC01", num_pcs = 28)
   cluster("SC02", num_pcs = 25)
+  cluster("SC03", num_pcs = 21)
 }
