@@ -1,0 +1,20 @@
+Scmap SC01 on SC01.
+counts <- raw.data
+logcounts <- log2(counts + 1)
+Seurat top 500 features
+Kappa: 0.907751182540284 , Assigned frac: 0.997449744974497
+
+Scmap SC01 on SC01.
+counts <- raw.data
+logcounts <- log2(counts + 1)
+Kappa: 0.915451847637114 , Assigned frac: 0.992049204920492
+
+Scmap SC01 on SC01.
+counts <- raw.data
+logcounts <- data
+Kappa: 0.919259384952225 , Assigned frac: 0.673117311731173
+
+Scmap SC01 on SC01.
+counts <- NULL
+logcounts <- data
+Kappa: 0.919259384952225 , Assigned frac: 0.673117311731173
