@@ -62,7 +62,7 @@ def predict(model, input_columns, experiment):
     missing_columns = input_columns[~ input_columns.isin(experiment.columns)]
     experiment = experiment.copy()
     experiment[list(missing_columns)] = pd.DataFrame([[0] * len(missing_columns)], index=experiment.index)
-    return model.predict_proba(experiment[input_columns])
+    return pd.DataFrame(model.predict_proba(experiment[input_columns]), index=experiment.index)
 
 def main():
     X, y = load_mca_lung()
@@ -76,10 +76,14 @@ def main():
         loss_function='MultiClass',
         eval_metric='Accuracy',
     )
-    best_model.fit(
-        X, y, [X.shape[1] - 1]
-    )
-    best_model.save_model(os.path.join(CUR_DIR, 'mca-lung-best-model.cbm'))
+    model_path = os.path.join(CUR_DIR, 'mca-lung-best-model.cbm')
+    if os.path.exists(model_path):
+        best_model.load_model(model_path)
+    else:
+        best_model.fit(
+            X, y, [X.shape[1] - 1]
+        )
+        best_model.save_model(model_path)
 
     sc01 = load_10x(path('SC01'), 'SC01')
     sc02 = load_10x(path('SC02'), 'SC02')
