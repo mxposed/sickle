@@ -1,10 +1,17 @@
 require(Seurat)
 
 DATASET_DIR <- "/Users/markov/Documents/MSc Bioinformatics/scRNA clustering/dataset 1/"
-CACHE_DIR <- dirname(sys.frame(1)$ofile)
+CURRENT_DIR <- dirname(sys.frame(1)$ofile)
 
-cluster <- function(dataset, num_pcs=NULL) {
-  cache_file <- paste(CACHE_DIR, paste(dataset, "rds", sep='.'), sep='/')
+pdfPlot <- function(filename, plot, width=8, height=6) {
+  pdf(file=file.path(CURRENT_DIR, filename), width=width, height=height)
+  result <- plot()
+  dev.off()
+  return(result)
+}
+
+cluster <- function(dataset, num_pcs=NULL, resolution=0.5) {
+  cache_file <- paste(CURRENT_DIR, paste(dataset, "rds", sep='.'), sep='/')
   
   if (file.exists(cache_file)) {
     sce <- readRDS(cache_file)
@@ -25,30 +32,28 @@ cluster <- function(dataset, num_pcs=NULL) {
     sce <- ProjectPCA(sce, do.print=FALSE)
   }
   
-  elbow_file <- paste(CACHE_DIR, paste(dataset, "_elbow.pdf", sep=''), sep='/')
-  pdf(elbow_file, width=8, height=4)
-  plot(PCElbowPlot(sce, num.pc=40))
-  dev.off()
+  pdfPlot(paste0(dataset, '_elbow.pdf'), function() {
+    plot(PCElbowPlot(sce, num.pc=40))
+  })
   
   if (is.null(num_pcs)) {
     saveRDS(sce, cache_file)
     return(sce)
   }
   
-  sce <- FindClusters(sce, dims.use = 1:num_pcs, resolution = 0.5, 
+  sce <- FindClusters(sce, dims.use = 1:num_pcs, resolution=resolution, 
                       print.output = FALSE, save.SNN = TRUE)
   sce <- RunTSNE(sce, dims.use = 1:num_pcs, check_duplicates = FALSE)
   
-  tsne_file <- paste(CACHE_DIR, paste(dataset, "_tsne.pdf", sep=''), sep='/')
-  pdf(tsne_file, width=10, height=10)
-  TSNEPlot(sce, do.label = TRUE)
-  dev.off()
+  pdfPlot(paste0(dataset, '_tsne.pdf'), function() {
+    TSNEPlot(sce, do.label = TRUE)
+  })
   
   markers <- FindAllMarkers(sce, only.pos = TRUE, 
                             min.pct = 0.25, thresh.use = 0.5, 
                             max.cells.per.ident = 200)
-  markers_file <- paste(CACHE_DIR, 
-                        paste(dataset, "_markers_PC1-", num_pcs, "res0.5.csv", sep=''),
+  markers_file <- paste(CURRENT_DIR, 
+                        paste0(dataset, "_markers_PC1-", num_pcs, "res", resolution, ".csv"),
                         sep='/')
   write.csv(markers, markers_file)
   
@@ -57,7 +62,7 @@ cluster <- function(dataset, num_pcs=NULL) {
 }
 
 main <- function() {
-  cluster("SC01", num_pcs = 28)
+  cluster("SC01", num_pcs = 28, resolution = 0.8)
   cluster("SC02", num_pcs = 25)
   cluster("SC03", num_pcs = 21)
 }
