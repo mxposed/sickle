@@ -68,13 +68,14 @@ def main():
     X, y = load_mca_lung()
     best_model = catboost.CatBoostClassifier(
         l2_leaf_reg=2,
-        learning_rate=0.415,
-        depth=8,
+        learning_rate=0.468,
+        depth=10,
         iterations=200,
         random_seed=42,
         logging_level='Silent',
         loss_function='MultiClass',
-        eval_metric='Accuracy',
+        eval_metric='TotalF1',
+        thread_count=20,
     )
     model_path = os.path.join(CUR_DIR, 'mca-lung-best-model.cbm')
     if os.path.exists(model_path):
