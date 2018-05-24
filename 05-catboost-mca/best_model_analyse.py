@@ -34,7 +34,7 @@ def heatmap(predictions):
     return ax.get_figure()
 
 
-def second_maxes(predictions):
+def get_second_maxes(predictions):
     second_choices = pd.DataFrame(index=predictions.columns, columns=predictions.columns)
     second_choices.fillna(0, inplace=True)
     for cell in predictions.index:
@@ -42,13 +42,29 @@ def second_maxes(predictions):
         score = predictions.loc[cell, cell_type]
         second_cell_type = predictions.loc[cell, :][predictions.loc[cell, :] < score].idxmax()
         second_choices.loc[cell_type, second_cell_type] += 1
+    sums = second_choices.sum(axis=1)
+    sums[sums == 0] = 1
+    second_choices = second_choices.div(sums, axis='index')
     return second_choices
+
+
+def plot_second_maxes(maxes):
+    plt.figure(figsize=(14,14))
+    sums = maxes.sum(axis=0)
+    ax = seaborn.clustermap(maxes, 
+                            xticklabels=[maxes.index[i] + ' ({:.2f})'.format(sums[i]) for i in range(len(sums))],
+                           )
+    ax.ax_heatmap.set_ylabel('Main cell type')
+    ax.ax_heatmap.set_xlabel('Second cell type')
+    return ax
 
 
 def process(exp):
     sc01 = load_predictions(os.path.join(CUR_DIR, '{}-best-preds.csv'.format(exp)))
-    sc01_second_maxes = second_maxes(sc01)
-    sc01_second_maxes.to_csv(os.path.join(CUR_DIR, '{}-best-second.csv'.format(exp)))
+    sc01_second_maxes = get_second_maxes(sc01)
+    sc01_second_maxes.sum(axis=0).to_csv(os.path.join(CUR_DIR, '{}-second-max-total.csv'.format(exp)))
+    maxes_heatmap = plot_second_maxes(sc01_second_maxes)
+    maxes_heatmap.savefig(os.path.join(CUR_DIR, '{}-second-max-heatmap.png'.format(exp)))
     sc01 = heatmap(sc01)
     sc01.savefig(os.path.join(CUR_DIR, '{}-best-heatmap.png'.format(exp)))
 
