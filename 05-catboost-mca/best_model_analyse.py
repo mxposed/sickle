@@ -45,6 +45,8 @@ def get_second_maxes(predictions):
     sums = second_choices.sum(axis=1)
     sums[sums == 0] = 1
     second_choices = second_choices.div(sums, axis='index')
+    total = second_choices.sum(axis=0)
+    second_choices = second_choices.reindex_axis(sorted(second_choices.columns, key=lambda x: -total[x]), axis=1)
     return second_choices
 
 
@@ -53,6 +55,7 @@ def plot_second_maxes(maxes):
     sums = maxes.sum(axis=0)
     ax = seaborn.clustermap(maxes, 
                             xticklabels=[maxes.index[i] + ' ({:.2f})'.format(sums[i]) for i in range(len(sums))],
+                            col_cluster=False,
                            )
     ax.ax_heatmap.set_ylabel('Main cell type')
     ax.ax_heatmap.set_xlabel('Second cell type')
