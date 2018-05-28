@@ -2,9 +2,10 @@ import pandas as pd
 import numpy as np
 import scipy.sparse
 from sklearn.model_selection import train_test_split
-from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import StratifiedKFold
-from sklearn.grid_search import ParameterGrid
+from sklearn.model_selection import ParameterGrid
+import catboost
+import sklearn.metrics
 
 import os
 
@@ -21,7 +22,10 @@ def load_10x(path, batch_label):
     mtx = pd.read_csv('{}/matrix.mtx'.format(path), skiprows=3, sep=' ', header=None)
     genes = pd.read_table('{}/genes.tsv'.format(path), header=None, index_col=1)
     cells = pd.read_table('{}/barcodes.tsv'.format(path), header=None, index_col=0)
-    assgn = pd.read_csv('{}/cell_assgn.csv'.format(path), index_col=0)
+    assgn = pd.read_csv('{}/{}_assgn.csv'.format(
+        os.path.join(CUR_DIR, '..', '01-cluster-sc01-sc02'),
+        batch_label,
+    ), index_col=0)
     assgn.columns = ['cluster']
     exp = scipy.sparse.csc_matrix((mtx[2], (mtx[0] - 1, mtx[1] - 1)), shape=(len(genes), len(cells)))
     exp = pd.SparseDataFrame(exp)
@@ -31,7 +35,9 @@ def load_10x(path, batch_label):
     exp = exp.to_dense()
     exp['Batch'] = batch_label
     exp.fillna(0, inplace=True)
+    cols = exp.columns.unique()
     exp = exp.groupby(level=0, axis=1).sum()
+    exp = exp.reindex(columns=cols)
     exp = exp.join(assgn)
     exp = exp[~exp.cluster.isna()]
     return exp
@@ -43,15 +49,14 @@ def cross_val(X, y, params, cv=5):
     scores = []
 
     for tr_ind, val_ind in skf.split(X, y):
-        X_train, y_train = X[tr_ind], y[tr_ind]
+        X_train, y_train = X.iloc[tr_ind, :], y.iloc[tr_ind]
+        X_valid, y_valid = X.iloc[val_ind, :], y.iloc[val_ind]
 
-        X_valid, y_valid = X[val_ind], y[val_ind]
-
-        clf = CatBoostClassifier(
+        clf = catboost.CatBoostClassifier(
             l2_leaf_reg=params['l2_leaf_reg'],
             learning_rate=params['learning_rate'],
             depth=params['depth'],
-            iterations=1,
+            iterations=30,
             random_seed=42,
             logging_level='Silent',
             loss_function='MultiClass',
@@ -78,7 +83,7 @@ def catboost_GridSearchCV(X, y, params_space, cv=5):
     max_score = 0
     best_params = None
     for params in list(ParameterGrid(params_space)):
-        score = cross_val(X, y, params, cv=5)
+        score = cross_val(X, y, params, cv=cv)
         if score > max_score:
             max_score = score
             best_params = params
@@ -96,12 +101,7 @@ def main():
         'learning_rate': np.linspace(1e-3, 8e-1, num=10),
         'depth': [6, 8, 10],
     }
-    params_space = {
-        'l2_leaf_reg': [7],
-        'learning_rate': np.linspace(1e-3, 8e-1, num=1),
-        'depth': [6, 10],
-    }
-    best_params = catboost_GridSearchCV(X_train, y_train, params_space, cv=2)
+    best_params = catboost_GridSearchCV(X_train, y_train, params_space, cv=5)
     print(best_params)
 
 
