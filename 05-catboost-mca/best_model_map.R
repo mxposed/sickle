@@ -1,7 +1,21 @@
 require(Seurat)
 require(scmap)
 
-CURRENT_DIR <- dirname(sys.frame(1)$ofile)
+
+thisFile <- function() {
+  cmdArgs <- commandArgs(trailingOnly = FALSE)
+  needle <- "--file="
+  match <- grep(needle, cmdArgs)
+  if (length(match) > 0) {
+    # Rscript
+    return(normalizePath(sub(needle, "", cmdArgs[match])))
+  } else {
+    # 'source'd via R console
+    return(normalizePath(sys.frames()[[1]]$ofile))
+  }
+}
+
+CURRENT_DIR <- dirname(thisFile())
 CODE_ROOT <- dirname(CURRENT_DIR)
 SCE_CACHE_DIR <- file.path(CODE_ROOT, '01-cluster-sc01-sc02')
 METADATA_DIR <- file.path(CODE_ROOT, '00-metadata')
@@ -39,7 +53,13 @@ process <- function(exp) {
   #labels2 <- mca.clusters$Annotation[match(sc01@ident, mca.clusters$ClusterID)]
   #levels(labels2) <- c(levels(labels2), "Unassigned")
   #labels2[is.na(labels2)] <- "Unassigned"
-  plot(getSankey(labels1, sc01@ident, plot_width = 800, plot_height = 800))
+  plot(getSankey(labels1, 
+                 sc01@ident, 
+                 plot_width = 800, 
+                 plot_height = 800, 
+                 colors = substr(rainbow(length(unique(labels1))), 1, 7)
+                 )
+       )
 }
 
 main <- function() {
