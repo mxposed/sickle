@@ -74,7 +74,7 @@ def main():
 
     sc03, _ = load_10x(path('SC03'), 'SC03')
     sc03_preds = predict(best_model, X.columns, sc03)
-    pd.DataFrame(sc03_preds).to_csv(os.path.join(CUR_DIR, 'sc03-preds.csv'))
+    sc03_preds.to_csv(os.path.join(CUR_DIR, 'sc03-preds.csv'))
 
 
 if __name__ == '__main__':
