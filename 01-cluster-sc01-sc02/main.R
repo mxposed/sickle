@@ -62,7 +62,7 @@ cluster <- function(dataset, num_pcs=NULL, resolution=0.5) {
 }
 
 main <- function() {
-  cluster("SC01", num_pcs = 28, resolution = 0.8)
+  cluster("SC01", num_pcs = 28)
   cluster("SC02", num_pcs = 25)
   cluster("SC03", num_pcs = 21)
 }
