@@ -1,8 +1,21 @@
+# R and RStudio
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
 *.Rproj
+
+# R data files
 *.rds
+
+# IPython notebooks
 .ipynb_checkpoints
+
+# MacOS
 .DS_Store
+
+# Script outputs (but some are added manually)
+*.pdf
+*.png
+*.csv
+*.zip
