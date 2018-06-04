@@ -53,7 +53,7 @@ cluster <- function(dataset, save_as=NULL, num_pcs=NULL, resolution=0.5) {
   
   pdfPlot(paste0(save_as, '_elbow.pdf'), function() {
     plot(PCElbowPlot(sce, num.pc = 40))
-  }, width=12, height=10)
+  })
   
   sce <- RunTSNE(sce, dims.use = 1:num_pcs, check_duplicates = FALSE)
   sce <- FindClusters(sce, dims.use = 1:num_pcs, resolution=resolution, 
@@ -63,7 +63,7 @@ cluster <- function(dataset, save_as=NULL, num_pcs=NULL, resolution=0.5) {
   
   pdfPlot(paste0(save_as, '_tsne.pdf'), function() {
     TSNEPlot(sce, do.label = TRUE)
-  })
+  }, width=12, height=10)
   
   saveRDS(sce, cache_file)
   return(sce)
@@ -80,7 +80,7 @@ markers <- function(sce, save_as, num_pcs, resolution) {
 
 main <- function() {
   sc01 <- cluster("SC01", save_as="SC01v2", num_pcs = 30, resolution = 0.9)
-  #markers(sc01, "SC01v2", num_pcs = 30, resolution = 0.9)
+  markers(sc01, "SC01v2", num_pcs = 30, resolution = 0.9)
 }
 
 main()
