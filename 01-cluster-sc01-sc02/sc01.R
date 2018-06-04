@@ -1,0 +1,86 @@
+require(Seurat)
+library(MUDAN)
+
+
+thisFile <- function() {
+  cmdArgs <- commandArgs(trailingOnly = FALSE)
+  needle <- "--file="
+  match <- grep(needle, cmdArgs)
+  if (length(match) > 0) {
+    # Rscript
+    return(normalizePath(sub(needle, "", cmdArgs[match])))
+  } else {
+    # 'source'd via R console
+    return(normalizePath(sys.frames()[[1]]$ofile))
+  }
+}
+
+CURRENT_DIR <- dirname(thisFile())
+CODE_ROOT <- dirname(CURRENT_DIR)
+SCE_CACHE_DIR <- file.path(CODE_ROOT, '01-cluster-sc01-sc02')
+METADATA_DIR <- file.path(CODE_ROOT, '00-metadata')
+
+pdfPlot <- function(filename, plot, width=8, height=6) {
+  pdf(file=file.path(CURRENT_DIR, filename), width=width, height=height)
+  result <- plot()
+  dev.off()
+  return(result)
+}
+
+cluster <- function(dataset, save_as=NULL, num_pcs=NULL, resolution=0.5) {
+  if (is.null(save_as)) {
+    save_as <- dataset
+  }
+  cache_file <- paste(CURRENT_DIR, paste(save_as, "rds", sep='.'), sep='/')
+  
+  if (file.exists(cache_file)) {
+    sce <- readRDS(cache_file)
+  } else {
+    data <- Read10X(data.dir = file.path(CODE_ROOT, "..", dataset, sep='/'))
+    sce <- CreateSeuratObject(raw.data=data, min.cells=3, min.genes=200)
+    mito.genes <- grep(pattern="^mt-", x=rownames(sce@data), value=TRUE)
+    percent.mito <- Matrix::colSums(sce@raw.data[mito.genes, ])/Matrix::colSums(sce@raw.data)
+    sce <- AddMetaData(sce, metadata=percent.mito, col.name="percent.mito")
+    sce <- FilterCells(sce, subset.names = c("nGene", "percent.mito"), 
+                       low.thresholds = c(300, -Inf), 
+                       high.thresholds = c(4000, 0.1))
+    sce <- NormalizeData(sce)
+    sce <- ScaleData(sce, vars.to.regress = c("nUMI", "percent.mito"))
+    sce <- FindVariableGenes(sce, x.low.cutoff=0.0125, x.high.cutoff=3, y.cutoff=-0.2, do.plot = FALSE)
+    sce <- RunPCA(sce, pc.genes = sce@var.genes, do.print = FALSE, pcs.compute = 40)
+    #sce <- ProjectPCA(sce, do.print=FALSE)
+  }
+  
+  pdfPlot(paste0(save_as, '_elbow.pdf'), function() {
+    plot(PCElbowPlot(sce, num.pc = 40))
+  }, width=12, height=10)
+  
+  sce <- RunTSNE(sce, dims.use = 1:num_pcs, check_duplicates = FALSE)
+  sce <- FindClusters(sce, dims.use = 1:num_pcs, resolution=resolution, 
+                      print.output = FALSE, save.SNN = TRUE, force.recalc = TRUE)
+  
+  write.csv(sce@ident, file.path(CURRENT_DIR, paste0(save_as, '_assgn.csv')))
+  
+  pdfPlot(paste0(save_as, '_tsne.pdf'), function() {
+    TSNEPlot(sce, do.label = TRUE)
+  })
+  
+  saveRDS(sce, cache_file)
+  return(sce)
+}
+
+markers <- function(sce, save_as, num_pcs, resolution) {
+  markers <- FindAllMarkers(sce, only.pos = TRUE, 
+                            min.pct = 0.25, thresh.use = 0.5, 
+                            max.cells.per.ident = 200)
+  markers_file <- file.path(CURRENT_DIR, 
+                            paste0(save_as, "_markers_PC1-", num_pcs, "res", resolution, ".csv"))
+  write.csv(markers, markers_file)
+}
+
+main <- function() {
+  sc01 <- cluster("SC01", save_as="SC01v2", num_pcs = 30, resolution = 0.9)
+  #markers(sc01, "SC01v2", num_pcs = 30, resolution = 0.9)
+}
+
+main()
