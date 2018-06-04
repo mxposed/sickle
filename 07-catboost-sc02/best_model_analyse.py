@@ -43,6 +43,8 @@ def heatmap(predictions, figsize=(16, 20)):
 def process(exp):
     preds = load_predictions(os.path.join(CUR_DIR, '{}-preds.csv'.format(exp)))
     hmap = heatmap(preds)
+    hmap.suptitle('Predictions for SC03 dataset')
+    hmap.subplots_adjust(top=0.88)
     hmap.savefig(os.path.join(CUR_DIR, '{}-heatmap.png'.format(exp)))
 
     sc03_clusters = pd.read_csv('{}/SC03_assgn.csv'.format(
@@ -50,6 +52,8 @@ def process(exp):
     ), index_col=0)
     sc03_clusters.columns = ['cluster']
     hmap = heatmap(preds.loc[sc03_clusters.index[sc03_clusters.cluster == 7],:], figsize=(16, 12))
+    hmap.suptitle('Predictions for SC03 Plasma cells')
+    hmap.subplots_adjust(top=0.88)
     hmap.savefig(os.path.join(CUR_DIR, '{}-plasma-heatmap.png'.format(exp)))
 
 
