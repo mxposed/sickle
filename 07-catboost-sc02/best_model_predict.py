@@ -76,6 +76,12 @@ def main():
     sc03_preds = predict(best_model, X.columns, sc03)
     sc03_preds.to_csv(os.path.join(CUR_DIR, 'sc03-preds.csv'))
 
+    importances = pd.DataFrame(best_model._feature_importance, X.columns)
+    importances[importances[0] > 0].sort_values(
+        0,
+        ascending=False
+    ).to_csv('./sc02-model-features.csv')
+
 
 if __name__ == '__main__':
     main()
