@@ -22,7 +22,7 @@ def predict(model, input_columns, experiment):
 
 
 def main():
-    X, y = load_10x(path('SC02'), 'SC02v2')
+    X, y = utils.load_10x(path('SC02'), 'SC02v2')
     best_model = catboost.CatBoostClassifier(
         l2_leaf_reg=7,
         learning_rate=0.622,
@@ -43,7 +43,7 @@ def main():
         )
         best_model.save_model(model_path)
 
-    sc03, _ = load_10x(path('SC03'), 'SC03')
+    sc03, _ = utils.load_10x(path('SC03'), 'SC03')
     sc03_preds = predict(best_model, X.columns, sc03)
     sc03_preds.to_csv(os.path.join(CUR_DIR, 'sc03v2-preds.csv'))
 
@@ -51,7 +51,7 @@ def main():
     importances[importances[0] > 0].sort_values(
         0,
         ascending=False
-    ).to_csv('./sc02v2-model-features.csv')
+    ).to_csv(os.path.join(CUR_DIR, 'sc02v2-model-features.csv'))
 
 
 if __name__ == '__main__':
