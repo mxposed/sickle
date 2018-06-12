@@ -1,3 +1,7 @@
+import matplotlib
+# Force matplotlib to not use any Xwindows backend.
+matplotlib.use('Agg')
+
 import pandas as pd
 import scanpy.api as sc
 
@@ -9,6 +13,7 @@ def load_10x(path, batch_label):
     sc01 = sc.read('{}/matrix.mtx'.format(path), cache=True).T
     sc01.var_names = pd.read_table('{}/genes.tsv'.format(path), header=None)[1]
     sc01.obs_names = pd.read_table('{}/barcodes.tsv'.format(path), header=None)[0]
+    sc01.obs_names = sc01.obs_names.str.replace('-1', '')
     sc01.var_names_make_unique()
     sc.pp.filter_cells(sc01, min_genes=200)
     sc.pp.filter_genes(sc01, min_cells=3)

@@ -27,6 +27,7 @@ def cross_val(X, y, params, cv=5):
     splits = list(skf.split(X, y))
     for i, (tr_ind, val_ind) in enumerate(splits):
         print('({}/{})'.format(i, len(splits)), file=sys.stderr, end='')
+        sys.stderr.flush()
 
         X_train, y_train = X.iloc[tr_ind, :], y.iloc[tr_ind]
         X_valid, y_valid = X.iloc[val_ind, :], y.iloc[val_ind]
@@ -53,6 +54,7 @@ def cross_val(X, y, params, cv=5):
         score = sklearn.metrics.f1_score(y_valid, y_pred, average='weighted')
         scores.append(score)
         print('\b\b\b\b\b', file=sys.stderr, end='')
+        sys.stderr.flush()
     return np.mean(scores)
 
 
@@ -63,19 +65,21 @@ def catboost_GridSearchCV(X, y, params_space, cv=5, splits=1, current_split=1):
     divider = current_split - 1
     my_params = [all_params[i] for i in range(len(all_params)) if i % splits == divider]
     for i, params in enumerate(my_params):
-        print('{:3d}% '.format(i // len(my_params)), file=sys.stderr, end='')
+        print('{:3d}% '.format(i * 100 // len(my_params)), file=sys.stderr, end='')
+        sys.stderr.flush()
         score = cross_val(X, y, params, cv=cv)
         if score > max_score:
             max_score = score
             best_params = params
         print('\r' + ' ' * 20 + '\r', file=sys.stderr, end='')
+        sys.stderr.flush()
     return max_score, best_params
 
 
 def main(splits, current_split):
     X, y = utils.load_10x(path('SC02'), 'SC02v2')
     X_train, X_test, y_train, y_test =  train_test_split(
-        X, y, test_size=0.1, stratify=y,
+        X, y, test_size=0.1, stratify=y, random_state=42,
     )
     params_space = {
         'l2_leaf_reg': [1, 3, 5, 7, 9],
