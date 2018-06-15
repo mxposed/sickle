@@ -20,14 +20,14 @@ CURRENT_DIR <- dirname(thisFile())
 
 sce <- readRDS(file.path(CURRENT_DIR, 'SC02.rds'))
 vars <- c('nGene', 'nUMI', 'percent.mito')
-b.cells <- sce@ident %in% c(0, 3)
+b.cells <- sce@ident %in% c(0, 2)
 b.cells.df <- data.frame(sce@meta.data[b.cells, vars], ident=sce@ident[b.cells])
 
 plots <- list()
-for (f in fields) {
-  plots[[f]] <- ggplot(b.cells.df, aes_string(f, fill="ident")) +
-                geom_histogram(alpha=0.5, aes(y=..density..), position='identity', bins=50) +
-                xlab(f)
+for (var in vars) {
+  plots[[var]] <- ggplot(b.cells.df, aes_string(var, fill="ident")) +
+                  geom_histogram(alpha=0.5, aes(y=..density..), position='identity', bins=50) +
+                  xlab(var)
 }
 
 ml <- arrangeGrob(grobs=plots, 
@@ -37,5 +37,5 @@ ml <- arrangeGrob(grobs=plots,
 ggsave(file.path(CURRENT_DIR, "SC02-b-cells-tech-vars.png"), ml, width=6, height=6)
 
 
-de.genes <- FindMarkers(sce, 0, 3)
+de.genes <- FindMarkers(sce, 0, 2)
 write.csv(de.genes, file=file.path(CURRENT_DIR, "SC02-b-cells-DE-genes.csv"))
