@@ -53,8 +53,8 @@ def get_second_maxes(predictions):
 def plot_second_maxes(maxes):
     plt.figure(figsize=(14,14))
     sums = maxes.sum(axis=0)
-    ax = seaborn.clustermap(maxes, 
-                            xticklabels=[maxes.index[i] + ' ({:.2f})'.format(sums[i]) for i in range(len(sums))],
+    ax = seaborn.clustermap(maxes,
+                            xticklabels=[maxes.columns[i] + ' ({:.2f})'.format(sums[i]) for i in range(len(sums))],
                             col_cluster=False,
                            )
     ax.ax_heatmap.set_ylabel('Main cell type')
