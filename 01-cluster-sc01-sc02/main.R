@@ -45,6 +45,8 @@ cluster <- function(dataset, num_pcs=NULL, resolution=0.5) {
                       print.output = FALSE, save.SNN = TRUE)
   sce <- RunTSNE(sce, dims.use = 1:num_pcs, check_duplicates = FALSE)
   
+  write.csv(sce@ident, file.path(CURRENT_DIR, paste0(dataset, '_assgn.csv')))
+  
   pdfPlot(paste0(dataset, '_tsne.pdf'), function() {
     TSNEPlot(sce, do.label = TRUE)
   })
@@ -62,7 +64,7 @@ cluster <- function(dataset, num_pcs=NULL, resolution=0.5) {
 }
 
 main <- function() {
-  cluster("SC01", num_pcs = 28)
+  #cluster("SC01", num_pcs = 28)
   cluster("SC02", num_pcs = 25)
-  cluster("SC03", num_pcs = 21)
+  #cluster("SC03", num_pcs = 21)
 }

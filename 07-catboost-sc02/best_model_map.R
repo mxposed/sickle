@@ -60,8 +60,7 @@ process <- function(exp) {
                  plot_width = 800, 
                  plot_height = 800, 
                  colors = substr(rainbow(length(unique(labels1))), 1, 7)
-  )
-  )
+  ))
 }
 
 main <- function() {
