@@ -20,10 +20,10 @@ def get_model(iterations=30):
     return model
 
 
-def models(classes, iterations=30, label=label):
+def models(classes, iterations=30, label=None):
     model_dir = os.path.join(CUR_DIR, 'models', label)
     if not os.path.exists(model_dir):
-        os.mkdirs(model_dir)
+        os.makedirs(model_dir)
     result = []
     for cls, X, y in classes:
         model = get_model(iterations)

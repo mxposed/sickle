@@ -12,14 +12,14 @@ ROOT = os.path.dirname(os.path.dirname(CUR_DIR))
 
 def get_reference():
     global _reference
-    if not _reference:
+    if '_reference' not in globals():
         _reference = utils.load_10x(os.path.join(ROOT, 'SC02'), 'SC02v2')
     return _reference
 
 
 def get_query():
     global _query
-    if not _query:
+    if '_query' not in globals():
         _query = utils.load_10x(os.path.join(ROOT, 'SC03'), 'SC03')
     return _query
 
