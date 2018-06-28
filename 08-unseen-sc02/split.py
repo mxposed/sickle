@@ -1,9 +1,9 @@
 import pandas as pd
 
 
-def split(X, y):
+def split(X, y, other_proportion=1):
     result = []
-    unique_classes = y.unique()
+    unique_classes = sorted(y.unique())
     for cls in unique_classes:
         cls_idx = (y == cls).index
         X_cls = X.loc[cls_idx, :]
@@ -11,7 +11,7 @@ def split(X, y):
         y_cls = y.loc[cls_idx]
         y_other = y[y != cls]
 
-        to_take = len(y_cls) // len(y_other.unique())
+        to_take = len(y_cls) // len(y_other.unique()) * other_proportion
         other_sample = y_other.groupby(y_other).apply(
             lambda x: x.sample(to_take, replace=len(x) < to_take)
         )
