@@ -28,7 +28,12 @@ def experiment(label=None, **kwargs):
     result_path = os.path.join(CUR_DIR, 'sc03-{}.csv'.format(label))
     if not os.path.exists(result_path):
         X, y = get_reference()
-        splits = split.split(X, y, other_proportion=kwargs['other_proportion'])
+        splits = split.split(
+            X, y,
+            other_proportion=kwargs.get('other_proportion'),
+            splits=kwargs.get('splits'),
+            split_order=kwargs.get('split_order'),
+        )
         models = train.models(splits, iterations=kwargs['catboost_iters'], label=label)
 
         sc03x, sc03y = get_query()
@@ -38,3 +43,4 @@ def experiment(label=None, **kwargs):
 if __name__ == '__main__':
     experiment(label='it30-oth1', catboost_iters=30, other_proportion=1)
     experiment(label='it100-oth2', catboost_iters=100, other_proportion=2)
+    experiment(label='it200-cum2', catboost_iters=200, splits=2, split_order='cumsum')

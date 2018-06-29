@@ -5,15 +5,19 @@ import os
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def get_model(iterations=30):
+def get_model(classes=classes, iterations=30):
+    if len(classes) == 1:
+        loss_function = 'Logloss'
+    else:
+        loss_function = 'MultiClass'
     model = catboost.CatBoostClassifier(
-        l2_leaf_reg=2,
+        l2_leaf_reg=7,
         learning_rate=0.622,
         depth=10,
         iterations=iterations,
         random_seed=42,
         logging_level='Silent',
-        loss_function='Logloss',
+        loss_function=loss_function,
         eval_metric='F1',
         thread_count=20,
     )
@@ -26,8 +30,8 @@ def models(classes, iterations=30, label=None):
         os.makedirs(model_dir)
     result = []
     for cls, X, y in classes:
-        model = get_model(iterations)
-        model_path = os.path.join(model_dir, 'cls-{}.cbm'.format(cls))
+        model = get_model(classes=cls, iterations=iterations)
+        model_path = os.path.join(model_dir, 'cls-{}.cbm'.format('+'.join(cls)))
         if os.path.exists(model_path):
             model.load_model(model_path)
         else:
