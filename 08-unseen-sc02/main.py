@@ -30,9 +30,9 @@ def experiment(label=None, **kwargs):
         X, y = get_reference()
         splits = split.split(
             X, y,
-            other_proportion=kwargs.get('other_proportion'),
+            other_proportion=kwargs.get('other_proportion', 1),
             splits=kwargs.get('splits'),
-            split_order=kwargs.get('split_order'),
+            split_order=kwargs.get('split_order', 'cumsum'),
         )
         models = train.models(splits, iterations=kwargs['catboost_iters'], label=label)
 
@@ -41,6 +41,6 @@ def experiment(label=None, **kwargs):
 
 
 if __name__ == '__main__':
-    experiment(label='it30-oth1', catboost_iters=30, other_proportion=1)
+    experiment(label='it30-oth1', catboost_iters=30)
     experiment(label='it100-oth2', catboost_iters=100, other_proportion=2)
-    experiment(label='it200-cum2', catboost_iters=200, splits=2, split_order='cumsum')
+    experiment(label='it200-cum2', catboost_iters=200, splits=2)

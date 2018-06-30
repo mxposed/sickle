@@ -4,17 +4,18 @@ import pandas as pd
 
 
 def split(X, y, other_proportion=1, splits=None, split_order=None):
+    result = []
     class_splits = split_y(y, splits=splits, split_order=split_order)
     for classes in class_splits:
         membership = y.isin(classes)
-        cls_idx = membership.index
-        inverse_idx = (~membership).index
+        cls_idx = y[membership].index
+        inverse_idx = y[~membership].index
         X_cls = X.loc[cls_idx, :]
         X_other = X.loc[inverse_idx, :]
         y_cls = y.loc[cls_idx]
         y_other = y.loc[inverse_idx]
 
-        y_cls.replace({x: i for i, x in enumerate(classes)})
+        y_cls = y_cls.replace({x: i for i, x in enumerate(classes)})
 
         to_take = len(y_cls) // len(y_other.unique()) * other_proportion
         other_sample = y_other.groupby(y_other).apply(
