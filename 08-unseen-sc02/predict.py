@@ -13,7 +13,7 @@ def predict(models, input_columns, X):
     for i, (classes, model) in enumerate(models):
         predictions = base_predict(model, input_columns, X)
         if len(classes) == 1:
-            results[classes] = predictions[0]
+            result[classes[0]] = predictions.iloc[:,0]
         else:
             classes += [-i - 1]
             result[classes] = predictions
