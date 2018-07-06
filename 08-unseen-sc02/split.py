@@ -3,7 +3,9 @@ import math
 import pandas as pd
 
 
-def split(X, y, other_proportion=1, splits=None, split_order=None):
+def split(X, y, other_proportion=1, splits=None, split_order=None, other=None):
+    if other not in ('equal', 'proportional'):
+        raise ValueError('other should be equal or proportional')
     result = []
     class_splits = split_y(y, splits=splits, split_order=split_order)
     for classes in class_splits:
@@ -17,9 +19,15 @@ def split(X, y, other_proportion=1, splits=None, split_order=None):
 
         y_cls = y_cls.replace({x: i for i, x in enumerate(classes)})
 
-        to_take = len(y_cls) // len(y_other.unique()) * other_proportion
+        def to_take(x):
+            if other == 'equal':
+                return len(y_cls) * other_proportion // len(y_other.unique())
+            else:
+                total = len(y_cls) * other_proportion
+                class_frac = (y == x[0]).sum() / len(y)
+                return total * class_frac
         other_sample = y_other.groupby(y_other).apply(
-            lambda x: x.sample(to_take, replace=len(x) < to_take)
+            lambda x: x.sample(to_take(x), replace=len(x) < to_take)
         )
         other_sample.index = other_sample.index.droplevel('cluster')
         other_idx = other_sample.index
