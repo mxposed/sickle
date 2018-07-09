@@ -25,9 +25,9 @@ def split(X, y, other_proportion=1, splits=None, split_order=None, other=None):
             else:
                 total = len(y_cls) * other_proportion
                 class_frac = (y == x[0]).sum() / len(y)
-                return total * class_frac
+                return int(total * class_frac)
         other_sample = y_other.groupby(y_other).apply(
-            lambda x: x.sample(to_take(x), replace=len(x) < to_take)
+            lambda x: x.sample(to_take(x), replace=len(x) < to_take(x))
         )
         other_sample.index = other_sample.index.droplevel('cluster')
         other_idx = other_sample.index

@@ -46,7 +46,7 @@ if __name__ == '__main__':
     experiment(label='it100-oth2', catboost_iters=100, other_proportion=2)
     experiment(label='it50-oth4', catboost_iters=50, other_proportion=4)
     # TODO
-    experiment(label='it50-oth4', catboost_iters=50, other_proportion=4, other='proportional')
+    experiment(label='it50-oth4-pro', catboost_iters=50, other_proportion=4, other='proportional')
     experiment(label='it200-cum2', catboost_iters=200, splits=2)
     experiment(label='it200-cum4', catboost_iters=200, splits=4)
     experiment(label='it200-int2', catboost_iters=200, splits=2, split_order='interleaved')
