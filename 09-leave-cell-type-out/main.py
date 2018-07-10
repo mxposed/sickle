@@ -27,7 +27,7 @@ def experiment(**kwargs):
             other_proportion=4,
             split_order='cumsum',
         )
-        models = train.models(splits, iterations=kwargs['catboost_iters'], label=label)
+        models = train.models(splits, iterations=kwargs['catboost_iters'], label='cv-{}'.format(i))
         result_path = os.path.join(CUR_DIR, 'cv-{}.csv'.format(i))
         predict.predict(models, X_train.columns, X_test).to_csv(result_path)
         i += 1

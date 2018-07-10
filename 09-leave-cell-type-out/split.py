@@ -43,16 +43,9 @@ def split_y(y, other_proportion=1, splits=None, split_order=None):
     max_classes_in_split = math.ceil(len(unique_classes) / splits)
     max_items_in_split = len(y) / splits
 
-    order_idx = list(range(len(unique_classes)))
-    if split_order == 'interleaved':
-        order = []
-        for i in range(splits):
-            order += order_idx[i::splits]
-        order_idx = order
-
     current_split_classes = []
     current_sum = 0
-    for cls, count in y.value_counts().sort_index()[order_idx].iteritems():
+    for cls, count in y.value_counts().sort_index().iteritems():
         current_split_classes.append(cls)
         current_sum += count
         if len(result) + 1 < splits \

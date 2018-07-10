@@ -21,23 +21,14 @@ def load_predictions(path):
     clusters = pd.read_csv('{}/SC02v2_clusters.csv'.format(
         os.path.join(CUR_DIR, '..', '00-metadata'),
     ), index_col=0, header=None)
-    clusters.index = clusters.index.str.replace('C', '').astype(int)
+    clusters.index = clusters.index.str.replace('C', '').astype(float)
+    clusters.columns = ['label']
 
     preds = pd.read_csv(path, index_col=0)
-    preds = preds.reindex(columns=sorted(preds.columns, key=lambda x: float(x) < 0))
-    new_columns = list(clusters.iloc[:,0])
-    unseen_number = len(preds.columns) - len(clusters)
-    if unseen_number:
-        unseen_columns = list(preds.columns)[-unseen_number:]
-        unseen = preds.loc[:,unseen_columns].min(axis=1)
-        preds.drop(columns=unseen_columns, inplace=True)
-        preds['Unseen'] = unseen
-        new_columns += ['Unseen']
-        #new_columns += unseen_columns
-    else:
-        unseen = 1 - preds.max(axis=1)
-        preds['Unseen'] = unseen
-        new_columns += ['Unseen']
+    new_columns = list(clusters.label.reindex(preds.columns.astype(float)))
+    unseen = 1 - preds.max(axis=1)
+    preds['Unseen'] = unseen
+    new_columns += ['Unseen']
     preds.columns = new_columns
     return preds
 

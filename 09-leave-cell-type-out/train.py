@@ -39,6 +39,10 @@ def models(classes, iterations=30, label=None):
             model.load_model(model_path)
         else:
             trained = True
+            print(cls)
+            print(X.shape)
+            print(y.shape)
+            print(sorted(y.unique()))
             model.fit(X, y)
             model.save_model(model_path)
         result.append((cls, model))

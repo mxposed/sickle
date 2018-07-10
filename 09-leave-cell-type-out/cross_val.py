@@ -4,8 +4,8 @@ from sklearn.model_selection import train_test_split
 
 def leave_cell_type_out(X, y):
     for cls in sorted(y.unique()):
-        y_train = y[y == cls]
-        y_test = y[y != cls]
+        y_train = y[y != cls]
+        y_test = y[y == cls]
         X_train = X.loc[y_train.index, :]
         X_test = X.loc[y_test.index, :]
         X_train, X_test_add, y_train, y_test_add =  train_test_split(
