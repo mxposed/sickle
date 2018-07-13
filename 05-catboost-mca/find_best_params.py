@@ -21,6 +21,12 @@ def path(*args):
     return os.path.join(ROOT, *args)
 
 
+def save_record(record, label):
+    pd.DataFrame(record, columns=['params', 'score', 'time']).to_csv(
+        os.path.join(CUR_DIR, '{}.csv'.format(label))
+    )
+
+
 def eval_params(params, X_train, y_train, X_valid, y_valid):
     clf = catboost.CatBoostClassifier(
         l2_leaf_reg=params['l2_leaf_reg'],
@@ -31,7 +37,7 @@ def eval_params(params, X_train, y_train, X_valid, y_valid):
         logging_level='Silent',
         loss_function='MultiClass',
         eval_metric='TotalF1',
-        thread_count=20,
+        thread_count=10,
     )
 
     clf.fit(
@@ -61,7 +67,7 @@ def cross_val(X, y, params, cv=5):
     return np.mean(scores)
 
 
-def catboost_GridSearchCV(X, y, params_space, cv=5, splits=1, current_split=1):
+def catboost_GridSearchCV(X, y, params_space, cv=5, splits=1, current_split=1, report):
     max_score = 0
     best_params = None
     all_params = list(ParameterGrid(params_space))
@@ -70,16 +76,18 @@ def catboost_GridSearchCV(X, y, params_space, cv=5, splits=1, current_split=1):
     for i, params in enumerate(my_params):
         print('{:3d}% '.format(i * 100 // len(my_params)), file=sys.stderr, end='')
         sys.stderr.flush()
+        start = timeit.default_timer()
         score = cross_val(X, y, params, cv=cv)
         if score > max_score:
             max_score = score
             best_params = params
+        report.append([repr(params), score, timeit.default_timer() - start])
         print('\r' + ' ' * 20 + '\r', file=sys.stderr, end='')
         sys.stderr.flush()
     return max_score, best_params
 
 
-def main(current_split):
+def main(outer_split, inner_split, inner_splits, report):
     X, y = utils.load_mca_lung()
     params_space = {
         'l2_leaf_reg': [1, 3, 5, 7, 9],
@@ -93,28 +101,21 @@ def main(current_split):
         X_train, y_train = X.iloc[tr_idx, :], y.iloc[tr_idx]
         X_valid, y_valid = X.iloc[val_idx, :], y.iloc[val_idx]
 
-        start = timeit.default_timer()
         score, best_params = catboost_GridSearchCV(X_train, y_train,
-                                                   params_space, cv=5)
-        search_time = timeit.default_timer() - start
-        print('Inner CV result: F1 {}'.format(score))
-        print('Search time: {:.1f} hours'.format(search_time / 60 / 60))
-        print('Best params:')
-        print(best_params)
-
-        eval_params = best_params.copy()
-        eval_params['iters'] = 200
-
-        start = timeit.default_timer()
-        score = eval_params(eval_params, X_train, y_train, X_valid, y_valid)
-        eval_time = timeit.default_timer() - start
-        print('F1 on left-out test: {}'.format(score))
-        print('Time for evaluation: {:.1f} mins'.format(eval_time / 60))
+                                                   params_space, cv=5,
+                                                   splits=inner_splits,
+                                                   current_split=inner_split,
+                                                   report)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('Usage: {} <N>'.format(__file__), file=sys.stderr)
+    if len(sys.argv) < 4:
+        print('Usage: {} <N> <K> <T>'.format(__file__), file=sys.stderr)
         sys.exit(1)
-    split = int(sys.argv[1])
-    main(split)
+    outer_split = int(sys.argv[1])
+    inner_split = int(sys.argv[2])
+    inner_splits = int(sys.argv[3])
+    record = []
+    main(outer_split, inner_split, inner_splits, record)
+    save_record(record,
+                'search-{}+{}-of-{}'.format(outer_split, inner_split, inner_splits))
