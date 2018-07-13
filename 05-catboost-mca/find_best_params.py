@@ -1,5 +1,6 @@
 import os
 import sys
+import timeit
 
 import pandas as pd
 import numpy as np
@@ -43,7 +44,7 @@ def eval_params(params, X_train, y_train, X_valid, y_valid):
 
 
 def cross_val(X, y, params, cv=5):
-    skf = StratifiedKFold(n_splits=cv, shuffle=True, random_seed=42)
+    skf = StratifiedKFold(n_splits=cv, shuffle=True, random_state=42)
 
     scores = []
     splits = list(skf.split(X, y))
@@ -112,7 +113,7 @@ def main(current_split):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 2:
         print('Usage: {} <N>'.format(__file__), file=sys.stderr)
         sys.exit(1)
     split = int(sys.argv[1])
