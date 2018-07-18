@@ -67,7 +67,7 @@ def cross_val(X, y, params, cv=5):
     return np.mean(scores)
 
 
-def catboost_GridSearchCV(X, y, params_space, cv=5, splits=1, current_split=1, report):
+def catboost_GridSearchCV(X, y, params_space, record, cv=5, splits=1, current_split=1):
     max_score = 0
     best_params = None
     all_params = list(ParameterGrid(params_space))
@@ -81,13 +81,13 @@ def catboost_GridSearchCV(X, y, params_space, cv=5, splits=1, current_split=1, r
         if score > max_score:
             max_score = score
             best_params = params
-        report.append([repr(params), score, timeit.default_timer() - start])
+        record.append([repr(params), score, timeit.default_timer() - start])
         print('\r' + ' ' * 20 + '\r', file=sys.stderr, end='')
         sys.stderr.flush()
     return max_score, best_params
 
 
-def main(outer_split, inner_split, inner_splits, report):
+def main(outer_split, inner_split, inner_splits, record):
     X, y = utils.load_mca_lung()
     params_space = {
         'l2_leaf_reg': [1, 3, 5, 7, 9],
@@ -96,16 +96,15 @@ def main(outer_split, inner_split, inner_splits, report):
     }
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     splits = list(skf.split(X, y))
-    for tr_idx, val_idx in splits[current_split - 1:current_split]:
-        print('Running {}/5 outer CV'.format(current_split))
+    for tr_idx, val_idx in splits[outer_split - 1:outer_split]:
         X_train, y_train = X.iloc[tr_idx, :], y.iloc[tr_idx]
         X_valid, y_valid = X.iloc[val_idx, :], y.iloc[val_idx]
 
         score, best_params = catboost_GridSearchCV(X_train, y_train,
-                                                   params_space, cv=5,
+                                                   params_space, 
+                                                   record, cv=5,
                                                    splits=inner_splits,
-                                                   current_split=inner_split,
-                                                   report)
+                                                   current_split=inner_split)
 
 
 if __name__ == '__main__':
