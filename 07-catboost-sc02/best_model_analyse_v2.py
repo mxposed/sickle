@@ -1,29 +1,18 @@
+import os
+
 import pandas as pd
-import numpy as np
-import sklearn
-import catboost
-import scipy.sparse
 import matplotlib
 # Force matplotlib to not use any Xwindows backend.
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn
 
-import os.path
+import sankey
+import utils
 
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(CUR_DIR))
-
-
-def load_predictions(path):
-    clusters = pd.read_csv('{}/SC02v2_clusters.csv'.format(
-        os.path.join(CUR_DIR, '..', '00-metadata'),
-    ), index_col=0, header=None)
-    clusters.index = clusters.index.str.replace('C', '').astype(int)
-    preds = pd.read_csv(path, index_col=0)
-    preds.columns = clusters.iloc[:,0]
-    return preds
 
 
 def heatmap(predictions, figsize=(16, 20)):
@@ -52,7 +41,7 @@ def get_second_maxes(predictions):
     sums[sums == 0] = 1
     second_choices = second_choices.div(sums, axis='index')
     total = second_choices.sum(axis=0)
-    second_choices = second_choices.reindex_axis(sorted(second_choices.columns, key=lambda x: -total[x]), axis=1)
+    second_choices = second_choices.reindex(columns=sorted(second_choices.columns, key=lambda x: -total[x]))
     return second_choices
 
 
@@ -68,35 +57,52 @@ def plot_second_maxes(maxes):
     return ax
 
 
-def process(exp):
-    sc03_clusters = pd.read_csv('{}/SC03_assgn.csv'.format(
+def process(exp, reference, query):
+    exp_clusters = pd.read_csv('{}/{}_assgn.csv'.format(
         os.path.join(CUR_DIR, '..', '01-cluster-sc01-sc02'),
+        query
     ), index_col=0)
-    sc03_clusters.columns = ['cluster']
-    preds = load_predictions(os.path.join(CUR_DIR, '{}-preds.csv'.format(exp)))
+    exp_clusters.columns = ['cluster']
+
+    clusters = pd.read_csv('{}/{}_clusters.csv'.format(
+        os.path.join(os.path.dirname(CUR_DIR), '00-metadata'),
+        query
+    ), index_col=0, header=None)
+    clusters.index = clusters.index.str.replace('C', '').astype(int)
+
+    preds = utils.load_predictions(
+        os.path.join(CUR_DIR, '{}-preds.csv'.format(exp)),
+        reference
+    )
 
     second_maxes = get_second_maxes(preds)
     maxes_heatmap = plot_second_maxes(second_maxes)
     maxes_heatmap.savefig(os.path.join(CUR_DIR, '{}-second-max-heatmap.png'.format(exp)))
 
-    plasma_second_maxes = get_second_maxes(preds.loc[sc03_clusters.index[sc03_clusters.cluster == 7],:])
-    maxes_heatmap = plot_second_maxes(plasma_second_maxes)
-    plt.suptitle('Second max predictions for Plasma cells')
-    maxes_heatmap.savefig(os.path.join(CUR_DIR, '{}-plasma-second-max-heatmap.png'.format(exp)))
+    if query == 'SC03':
+        plasma_second_maxes = get_second_maxes(preds.loc[exp_clusters.index[exp_clusters.cluster == 7],:])
+        maxes_heatmap = plot_second_maxes(plasma_second_maxes)
+        plt.suptitle('Second max predictions for Plasma cells')
+        maxes_heatmap.savefig(os.path.join(CUR_DIR, '{}-plasma-second-max-heatmap.png'.format(exp)))
 
     hmap = heatmap(preds)
-    hmap.suptitle('Predictions for SC03 dataset')
+    hmap.suptitle('Predictions for {} dataset'.format(query))
     hmap.subplots_adjust(top=0.88)
     hmap.savefig(os.path.join(CUR_DIR, '{}-heatmap.png'.format(exp)))
 
-    hmap = heatmap(preds.loc[sc03_clusters.index[sc03_clusters.cluster == 7],:], figsize=(16, 12))
-    hmap.suptitle('Predictions for SC03 Plasma cells')
-    hmap.subplots_adjust(top=0.88)
-    hmap.savefig(os.path.join(CUR_DIR, '{}-plasma-heatmap.png'.format(exp)))
+    if query == 'SC03':
+        hmap = heatmap(preds.loc[exp_clusters.index[exp_clusters.cluster == 7],:], figsize=(16, 12))
+        hmap.suptitle('Predictions for SC03 Plasma cells')
+        hmap.subplots_adjust(top=0.88)
+        hmap.savefig(os.path.join(CUR_DIR, '{}-plasma-heatmap.png'.format(exp)))
+
+    s = sankey.sankey(clusters.iloc[:, 0].loc[exp_clusters.cluster], preds.idxmax(axis=1), alpha=.5)
+    s.savefig(os.path.join(CUR_DIR, '{}-sankey.png'.format(exp)))
 
 
 def main():
-    process('sc03v2')
+    process('sc03v2', 'SC02v2', 'SC03')
+    process('sc01', 'SC02v2', 'SC01v2')
 
 
 if __name__ == '__main__':

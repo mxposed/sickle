@@ -43,3 +43,14 @@ def load_10x(path, batch_label):
     exp['cluster'] = sc01.obs.cluster[exp.index]
     exp = exp[~exp.cluster.isna()]
     return exp[exp.columns[:-1]], exp.cluster
+
+
+def load_predictions(path, reference):
+    clusters = pd.read_csv('{}/{}_clusters.csv'.format(
+        os.path.join(os.path.dirname(CUR_DIR), '00-metadata'),
+        reference
+    ), index_col=0, header=None)
+    clusters.index = clusters.index.str.replace('C', '').astype(int)
+    preds = pd.read_csv(path, index_col=0)
+    preds.columns = clusters.iloc[:,0]
+    return preds
