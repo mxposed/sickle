@@ -25,7 +25,13 @@ def compute_score(cv, y_test):
         second_cell_type = preds.loc[index, :][preds.loc[index, :] < score].idxmax()
         final_cluster[index] = second_cell_type
     second_f1 = sklearn.metrics.f1_score(y_test, final_cluster, average='weighted')
-    return f1, second_f1
+
+    for index in wrong_idx:
+        main_cluster = preds.loc[index, :].idxmax()
+        random_cell_type = preds.columns[preds.columns != main_cluster].sample(1)
+        final_cluster[index] = random_cell_type
+    random_f1 = sklearn.metrics.f1_score(y_test, final_cluster, average='weighted')
+    return f1, second_f1, random_f1
 
 
 def main():
@@ -37,10 +43,9 @@ def main():
         for tr_idx, test_idx in splits[i - 1:i]:
             _, y_test = X.iloc[test_idx, :], y.iloc[test_idx]
             scores.append(compute_score(i, y_test))
-    scores = pd.DataFrame(scores, columns=['f1', 'second_f1'])
+    scores = pd.DataFrame(scores, columns=['f1', 'second_f1', 'random_f1'])
     scores.to_csv(os.path.join(CUR_DIR, 'scores.csv'))
 
 
 if __name__ == '__main__':
     main()
-
