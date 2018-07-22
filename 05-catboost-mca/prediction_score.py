@@ -74,19 +74,6 @@ def find_best_params(X, y, params_space, splits=1, current_split=1):
 
 def process():
     X, _ = utils.load_10x(os.path.join(ROOT, 'SC01'), 'SC01v2')
-<<<<<<< Updated upstream
-    predictions = pd.read_csv(os.path.join(CUR_DIR, 'sc01-best-preds.csv'), index_col=0)
-    predictions.index = predictions.index.str.replace('-1', '')
-    y = predictions.loc[X.index, :].max(axis=1)
-    X.drop(columns=['Batch'], inplace=True)
-    X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(X, y, test_size=0.1)
-
-    model = catboost.CatBoostRegressor(
-        iterations=2000,
-        learning_rate=0.4,
-        depth=10,
-        l2_leaf_reg=3,
-=======
 
     predictions = pd.read_csv(os.path.join(CUR_DIR, 'sc01-best-preds.csv'), index_col=0)
     y = predictions.loc[X.index, :].max(axis=1)
@@ -106,7 +93,6 @@ def process():
         learning_rate=best_params['learning_rate'],
         depth=best_params['depth'],
         l2_leaf_reg=best_params['l2_leaf_reg'],
->>>>>>> Stashed changes
         random_seed=42,
         logging_level='Silent',
         thread_count=20,
