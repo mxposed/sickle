@@ -13,13 +13,15 @@ ROOT = os.path.dirname(os.path.dirname(CUR_DIR))
 
 
 def process():
-    predictions = pd.read_csv(os.path.join(CUR_DIR, 'sc01-best-preds.csv'))
-    y = predictions.max(axis=1)
     X, _ = utils.load_10x(os.path.join(ROOT, 'SC01'), 'SC01v2')
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1)
+    predictions = pd.read_csv(os.path.join(CUR_DIR, 'sc01-best-preds.csv'), index_col=0)
+    predictions.index = predictions.index.str.replace('-1', '')
+    y = predictions.loc[X.index, :].max(axis=1)
+    X.drop(columns=['Batch'], inplace=True)
+    X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(X, y, test_size=0.1)
 
     model = catboost.CatBoostRegressor(
-        iterations=200,
+        iterations=2000,
         learning_rate=0.4,
         depth=10,
         l2_leaf_reg=3,
