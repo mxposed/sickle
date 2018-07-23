@@ -22,11 +22,24 @@ def predict(model, input_columns, experiment):
 
 
 def main():
-    X, y = utils.load_10x(path('SC02'), 'SC02v2')
+    runs = []
+    for i in range(1, 6):
+        runs.append(
+            pd.read_csv(os.path.join(
+                CUR_DIR,
+                './search-{}-of-5.csv'.format(i)
+            ),
+            index_col=0)
+        )
+    runs = pd.concat(runs, ignore_index=True)
+    best_row = runs.score.idxmax(axis=0)
+    best_params = eval(runs.params[best_row])
+
+    X, y = utils.load_10x(path('SC01'), 'SC01v2')
     best_model = catboost.CatBoostClassifier(
-        l2_leaf_reg=7,
-        learning_rate=0.622,
-        depth=10,
+        l2_leaf_reg=best_params['l2_leaf_reg'],
+        learning_rate=best_params['learning_rate'],
+        depth=best_params['depth'],
         iterations=200,
         random_seed=42,
         logging_level='Silent',
@@ -34,7 +47,7 @@ def main():
         eval_metric='TotalF1',
         thread_count=20,
     )
-    model_path = os.path.join(CUR_DIR, 'sc02v2-best-model.cbm')
+    model_path = os.path.join(CUR_DIR, 'sc01-model.cbm')
     if os.path.exists(model_path):
         best_model.load_model(model_path)
     else:
@@ -42,16 +55,15 @@ def main():
             X, y, [X.shape[1] - 1]
         )
         best_model.save_model(model_path)
+        importances = pd.DataFrame(best_model._feature_importance, X.columns)
+        importances[importances[0] > 0].sort_values(
+            0,
+            ascending=False
+        ).to_csv(os.path.join(CUR_DIR, 'sc01-features.csv'))
 
-    sc03, _ = utils.load_10x(path('SC03'), 'SC03')
-    sc03_preds = predict(best_model, X.columns, sc03)
-    sc03_preds.to_csv(os.path.join(CUR_DIR, 'sc03v2-preds.csv'))
-
-    importances = pd.DataFrame(best_model._feature_importance, X.columns)
-    importances[importances[0] > 0].sort_values(
-        0,
-        ascending=False
-    ).to_csv(os.path.join(CUR_DIR, 'sc02v2-model-features.csv'))
+    sc02, _ = utils.load_10x(path('SC02'), 'SC02v2')
+    sc02_preds = predict(best_model, X.columns, sc03)
+    sc02_preds.to_csv(os.path.join(CUR_DIR, 'sc02-preds.csv'))
 
 
 if __name__ == '__main__':
