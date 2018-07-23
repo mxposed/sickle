@@ -1,6 +1,8 @@
 import os
+import sys
 
 import catboost
+import numpy as np
 import pandas as pd
 import sklearn.metrics
 import sklearn.model_selection
@@ -35,7 +37,7 @@ def eval_params(params, X_train, y_train, X_valid, y_valid):
 
 
 def cross_val(X, y, params, cv=5):
-    skf = sklearn.model_selection.StratifiedKFold(n_splits=cv, shuffle=True, random_state=42)
+    skf = sklearn.model_selection.KFold(n_splits=cv, shuffle=True, random_state=42)
 
     scores = []
     splits = list(skf.split(X, y))
@@ -62,7 +64,7 @@ def find_best_params(X, y, params_space, splits=1, current_split=1):
         print('{:3d}% '.format(i * 100 // len(my_params)), file=sys.stderr, end='')
         sys.stderr.flush()
         #start = timeit.default_timer()
-        score = cross_val(X, y, params, cv=cv)
+        score = cross_val(X, y, params)
         if min_score is None or score < min_score:
             min_score = score
             best_params = params
@@ -74,8 +76,10 @@ def find_best_params(X, y, params_space, splits=1, current_split=1):
 
 def process():
     X, _ = utils.load_10x(os.path.join(ROOT, 'SC01'), 'SC01v2')
+    X.drop(columns=['Batch'], inplace=True)
 
     predictions = pd.read_csv(os.path.join(CUR_DIR, 'sc01-best-preds.csv'), index_col=0)
+    predictions.index = predictions.index.str.replace('-1', '')
     y = predictions.loc[X.index, :].max(axis=1)
 
     params_space = {
