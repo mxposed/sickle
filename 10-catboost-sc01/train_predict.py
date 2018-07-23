@@ -62,7 +62,7 @@ def main():
         ).to_csv(os.path.join(CUR_DIR, 'sc01-features.csv'))
 
     sc02, _ = utils.load_10x(path('SC02'), 'SC02v2')
-    sc02_preds = predict(best_model, X.columns, sc03)
+    sc02_preds = predict(best_model, X.columns, sc02)
     sc02_preds.to_csv(os.path.join(CUR_DIR, 'sc02-preds.csv'))
 
 
