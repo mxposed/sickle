@@ -101,8 +101,7 @@ def process(exp, reference, query):
 
 
 def main():
-    process('sc03v2', 'SC02v2', 'SC03')
-    process('sc01', 'SC02v2', 'SC01v2')
+    process('sc02', 'SC01v2', 'SC02v2')
 
 
 if __name__ == '__main__':
