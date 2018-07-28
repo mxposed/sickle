@@ -35,7 +35,7 @@ def main():
     best_row = runs.score.idxmax(axis=0)
     best_params = eval(runs.params[best_row])
 
-    X, y = utils.load_10x(path('SC01'), 'SC01v2')
+    X, y = utils.load_10x(path('SC03'), 'SC03')
     best_model = catboost.CatBoostClassifier(
         l2_leaf_reg=best_params['l2_leaf_reg'],
         learning_rate=best_params['learning_rate'],
@@ -47,7 +47,7 @@ def main():
         eval_metric='TotalF1',
         thread_count=20,
     )
-    model_path = os.path.join(CUR_DIR, 'sc01-model.cbm')
+    model_path = os.path.join(CUR_DIR, 'sc03-model.cbm')
     if os.path.exists(model_path):
         best_model.load_model(model_path)
     else:
@@ -59,7 +59,11 @@ def main():
         importances[importances[0] > 0].sort_values(
             0,
             ascending=False
-        ).to_csv(os.path.join(CUR_DIR, 'sc01-features.csv'))
+        ).to_csv(os.path.join(CUR_DIR, 'sc03-features.csv'))
+
+    sc01, _ = utils.load_10x(path('SC01'), 'SC01v2')
+    sc01_preds = predict(best_model, X.columns, sc01)
+    sc01_preds.to_csv(os.path.join(CUR_DIR, 'sc01-preds.csv'))
 
     sc02, _ = utils.load_10x(path('SC02'), 'SC02v2')
     sc02_preds = predict(best_model, X.columns, sc02)
