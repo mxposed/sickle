@@ -44,6 +44,11 @@ def main():
                 p = pval[-1, idx]
             result.append((x, var, datax.shape[0], rho, p))
 
+    datax = data[VARS + ['pred_score']]
+    corr, pval = scipy.stats.spearmanr(datax)
+    for idx, var in enumerate(VARS):
+        result.append(('All', var, datax.shape[0], corr[-1, idx], pval[-1, idx]))
+
     result = pd.DataFrame(
         result,
         columns=['Cell type', 'Variable', 'Size', 'Spearman Rho', 'p-value']
