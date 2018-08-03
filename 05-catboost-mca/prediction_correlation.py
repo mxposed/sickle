@@ -20,9 +20,20 @@ def load_predictions(path):
     return preds
 
 
-def main():
-    sc01 = utils.load_10x_scanpy(os.path.join(ROOT, 'SC01'), 'SC01v2')
-    sc01p = load_predictions(os.path.join(CUR_DIR, 'sc01-best-preds.csv'))
+def spearman(x, y):
+    return scipy.stats.spearmanr(x, y)
+
+
+def pearson(x, y):
+    return scipy.stats.pearsonr(x, y)
+
+
+def main(exp, assignment, function):
+    sc01 = utils.load_10x_scanpy(os.path.join(ROOT, exp), assignment)
+    sc01p = load_predictions(os.path.join(
+        CUR_DIR,
+        '{}-best-preds.csv'.format(exp.lower())
+    ))
 
     prediction = sc01p.idxmax(axis=1)
     pred_score = sc01p.max(axis=1)
@@ -34,28 +45,26 @@ def main():
     result = []
     for x in data.prediction.unique():
         datax = data.loc[data.prediction == x, VARS + ['pred_score']]
-        corr, pval = scipy.stats.spearmanr(datax)
         for idx, var in enumerate(VARS):
-            if np.isscalar(corr) and np.isnan(corr):
-                rho = np.nan
-                p = np.nan
-            else:
-                rho = corr[-1, idx]
-                p = pval[-1, idx]
-            result.append((x, var, datax.shape[0], rho, p))
+            corr, pval = function(datax['pred_score'], datax[var])
+            result.append((x, var, datax.shape[0], corr, pval))
 
     datax = data[VARS + ['pred_score']]
-    corr, pval = scipy.stats.spearmanr(datax)
     for idx, var in enumerate(VARS):
-        result.append(('All', var, datax.shape[0], corr[-1, idx], pval[-1, idx]))
+        corr, pval = function(datax['pred_score'], datax[var])
+        result.append(('All', var, datax.shape[0], corr, pval))
 
     result = pd.DataFrame(
         result,
         columns=['Cell type', 'Variable', 'Size', 'Spearman Rho', 'p-value']
     )
-    result[result['p-value'] < .05].to_csv(os.path.join(CUR_DIR, 'sc01-pred-score-corr.csv'))
+    result[result['p-value'] < .05].to_csv(os.path.join(
+        CUR_DIR,
+        'sc01-pred-score-{}.csv'.format(function.__name__)
+    ))
 
 
 
 if __name__ == '__main__':
-    main()
+    main('SC01', 'SC01v2', spearman)
+    main('SC01', 'SC01v2', pearson)
