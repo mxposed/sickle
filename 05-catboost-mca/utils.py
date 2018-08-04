@@ -21,9 +21,13 @@ def load_10x_scanpy(path, batch_label):
     sc.pp.filter_cells(sc01, min_genes=200)
     sc.pp.filter_genes(sc01, min_cells=3)
 
-    mito_genes = sc01.var_names[sc01.var_names.str.match(r'^mt-')]
     sc01.obs['n_UMI'] = np.sum(sc01.X, axis=1).A1
+
+    mito_genes = sc01.var_names[sc01.var_names.str.match(r'^mt-')]
     sc01.obs['percent_mito'] = np.sum(sc01[:, mito_genes].X, axis=1).A1 / sc01.obs['n_UMI']
+
+    ribo_genes = sc01.var_names[sc01.var_names.str.match(r'^(Rpl|Rps|Mrpl|Mrps)')]
+    sc01.obs['percent_ribo'] = np.sum(sc01[:, ribo_genes].X, axis=1).A1 / sc01.obs['n_UMI']
 
     assgn = pd.read_csv('{}/{}_assgn.csv'.format(
         os.path.join(CUR_DIR, '..', '01-cluster-sc01-sc02'),

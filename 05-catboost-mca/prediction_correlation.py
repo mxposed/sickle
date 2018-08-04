@@ -9,7 +9,7 @@ import utils
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(CUR_DIR))
-VARS = ['n_UMI', 'n_genes', 'percent_mito']
+VARS = ['n_UMI', 'n_genes', 'percent_mito', 'percent_ribo']
 
 
 def load_predictions(path):
@@ -21,10 +21,12 @@ def load_predictions(path):
 
 
 def spearman(x, y):
+    "Spearman Rho"
     return scipy.stats.spearmanr(x, y)
 
 
 def pearson(x, y):
+    "Pearson"
     return scipy.stats.pearsonr(x, y)
 
 
@@ -45,6 +47,8 @@ def main(exp, assignment, function):
     result = []
     for x in data.prediction.unique():
         datax = data.loc[data.prediction == x, VARS + ['pred_score']]
+        if datax.shape[0] < 30:
+            continue
         for idx, var in enumerate(VARS):
             corr, pval = function(datax['pred_score'], datax[var])
             result.append((x, var, datax.shape[0], corr, pval))
@@ -56,11 +60,28 @@ def main(exp, assignment, function):
 
     result = pd.DataFrame(
         result,
-        columns=['Cell type', 'Variable', 'Size', 'Spearman Rho', 'p-value']
+        columns=['Cell type', 'Variable', 'Size', function.__doc__, 'p-value']
     )
-    result[result['p-value'] < .05].to_csv(os.path.join(
+    result = result[result['p-value'] < .05]
+    result.to_csv(os.path.join(
         CUR_DIR,
         'sc01-pred-score-{}.csv'.format(function.__name__)
+    ))
+
+    out = """{}
+===============
+Rows: {}
+Avg correlation: {:.4f}
+Avg log10 pval: {}
+Max corr row:
+        {}
+"""
+    print(out.format(
+        function.__doc__,
+        result.shape[0],
+        result[function.__doc__].mean(),
+        np.mean(np.log10(result.loc[result['p-value'] > 0, 'p-value'])),
+        '\n\t'.join(str(result.loc[result[function.__doc__].abs().idxmax(), :]).split('\n'))
     ))
 
 
