@@ -28,7 +28,7 @@ def compute_score(cv, y_test):
 
     for index in wrong_idx:
         main_cluster = preds.loc[index, :].idxmax()
-        random_cell_type = preds.columns[preds.columns != main_cluster].sample(1)
+        random_cell_type = pd.Series(preds.columns[preds.columns != main_cluster]).sample(1)
         final_cluster[index] = random_cell_type
     random_f1 = sklearn.metrics.f1_score(y_test, final_cluster, average='weighted')
     return f1, second_f1, random_f1
