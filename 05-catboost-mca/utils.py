@@ -54,6 +54,14 @@ def path(*args):
     return os.path.join(ROOT, *args)
 
 
+def load_mca_assignments():
+    cell_types = pd.read_csv(path('MCA_assign.csv'), index_col=0)
+    cell_types = cell_types[cell_types.Tissue == 'Lung']
+    cell_types.ClusterID = cell_types.ClusterID.str.replace('Lung_', '').astype('int')
+    cell_types.ClusterID = cell_types.ClusterID - 1
+    return cell_types.set_index('Cell.name').ClusterID
+
+
 def load_mca_lung():
     lung1 = pd.read_csv(path('rmbatch_dge/Lung1_rm.batch_dge.txt'), header=0, sep=' ', quotechar='"')
     lung2 = pd.read_csv(path('rmbatch_dge/Lung2_rm.batch_dge.txt'), header=0, sep=' ', quotechar='"')
@@ -64,17 +72,9 @@ def load_mca_lung():
     lung3 = lung3.transpose()
     lung = pd.concat([lung1, lung2, lung3])
 
-    cell_types = pd.read_csv(path('MCA_assign.csv'), index_col=0)
-    cell_types = cell_types[cell_types.Tissue == 'Lung']
-    cell_types = cell_types.set_index('Cell.name')
-
-    lung = lung.join(cell_types.ClusterID)
+    lung = lung.join(load_mca_assignments())
     lung = lung[~lung.ClusterID.isna()]
     lung.fillna(0, inplace=True)
 
     X = lung[lung.columns[lung.columns != 'ClusterID']]
-    y = lung.ClusterID
-    y = y.str.replace('Lung_', '')
-    y = y.astype('int')
-    y = y - 1
-    return X, y
+    return X, lung.ClusterID
