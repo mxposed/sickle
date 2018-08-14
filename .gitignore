@@ -21,3 +21,10 @@
 *.zip
 *.txt
 *.cbm
+
+# Caches
+__pycache__
+cache
+
+# Catboost
+catboost_info
