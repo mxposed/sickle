@@ -1,9 +1,8 @@
+import sickle
+
 import os
 
 import pandas as pd
-import matplotlib
-# Force matplotlib to not use any Xwindows backend.
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn
 
@@ -11,8 +10,7 @@ import sankey
 import utils
 
 
-CUR_DIR = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(os.path.dirname(CUR_DIR))
+CUR_DIR, ROOT = sickle.paths(__file__)
 
 
 def heatmap(predictions, figsize=(16, 20)):
@@ -58,11 +56,7 @@ def plot_second_maxes(maxes):
 
 
 def process(exp, reference, query):
-    exp_clusters = pd.read_csv('{}/{}_assgn.csv'.format(
-        os.path.join(CUR_DIR, '..', '01-cluster-sc01-sc02'),
-        query
-    ), index_col=0)
-    exp_clusters.columns = ['cluster']
+    exp_clusters = sickle.assignments(query)
 
     clusters = pd.read_csv('{}/{}_clusters.csv'.format(
         os.path.join(os.path.dirname(CUR_DIR), '00-metadata'),
@@ -80,7 +74,7 @@ def process(exp, reference, query):
     maxes_heatmap.savefig(os.path.join(CUR_DIR, '{}-second-max-heatmap.png'.format(exp)))
 
     if query == 'SC03':
-        plasma_second_maxes = get_second_maxes(preds.loc[exp_clusters.index[exp_clusters.cluster == 7],:])
+        plasma_second_maxes = get_second_maxes(preds.loc[exp_clusters.index[exp_clusters == 7],:])
         maxes_heatmap = plot_second_maxes(plasma_second_maxes)
         plt.suptitle('Second max predictions for Plasma cells')
         maxes_heatmap.savefig(os.path.join(CUR_DIR, '{}-plasma-second-max-heatmap.png'.format(exp)))
@@ -91,17 +85,33 @@ def process(exp, reference, query):
     hmap.savefig(os.path.join(CUR_DIR, '{}-heatmap.png'.format(exp)))
 
     if query == 'SC03':
-        hmap = heatmap(preds.loc[exp_clusters.index[exp_clusters.cluster == 7],:], figsize=(16, 12))
+        hmap = heatmap(preds.loc[exp_clusters.index[exp_clusters == 7], :], figsize=(16, 12))
         hmap.suptitle('Predictions for SC03 Plasma cells')
         hmap.subplots_adjust(top=0.88)
         hmap.savefig(os.path.join(CUR_DIR, '{}-plasma-heatmap.png'.format(exp)))
 
-    s = sankey.sankey(clusters.iloc[:, 0].loc[exp_clusters.cluster], preds.idxmax(axis=1), alpha=.5)
+    mapping = sickle.mapping(query, reference)
+    s = sankey.sankey(
+        clusters.iloc[:, 0].loc[exp_clusters],
+        preds.idxmax(axis=1),
+        alpha=.7,
+        left_order=sickle.sankey_order(),
+        mapping=mapping
+    )
     s.savefig(os.path.join(CUR_DIR, '{}-sankey.png'.format(exp)))
+
+    if mapping:
+        open(os.path.join(CUR_DIR, '{}-f1.txt'.format(exp)), 'w').write(
+            'F1 score: {:.4f}'.format(
+                mapping.f1(clusters.iloc[:, 0].loc[exp_clusters],
+                           preds.idxmax(axis=1))
+            )
+        )
 
 
 def main():
     process('sc03v2', 'SC02v2', 'SC03')
+    #process('sc03v2-noisy', 'SC02v2', 'SC03')
     process('sc01', 'SC02v2', 'SC01v2')
 
 
