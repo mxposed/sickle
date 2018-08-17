@@ -79,3 +79,40 @@ def mapping(query, reference):
     )
     if os.path.exists(mapping_file):
         return Mapping(pd.read_csv(mapping_file, index_col=None))
+
+
+def load_mca_assignments(annotation):
+    if annotation == 'MCAv2':
+        assgn = pd.read_csv(
+            os.path.join(dirs['code'], '13-cluster-mca', 'MCAv2_assign.csv'),
+            index_col=0
+        )
+        assgn.columns = ['cluster']
+        return assgn.cluster.astype(int) - 1
+    raise ValueError('Annotation not known')
+
+
+def load_mca_raw():
+    data = []
+    for i in range(1, 4):
+        batch = pd.read_csv(
+            os.path.join(
+                dirs['root'],
+                'rmbatch_dge',
+                'Lung{}_rm.batch_dge.txt'.format(i)
+            ),
+            header=0,
+            sep=' ',
+            quotechar='"'
+        )
+        data.append(batch.transpose())
+    return pd.concat(data)
+
+
+def load_mca_lung(annotation):
+    lung = load_mca_raw().join(load_mca_assignments(annotation))
+    lung = lung[~lung.cluster.isna()]
+    lung.fillna(0, inplace=True)
+
+    X = lung[lung.columns[lung.columns != 'cluster']]
+    return X, lung.cluster
