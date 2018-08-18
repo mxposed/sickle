@@ -45,7 +45,6 @@ def cross_val(X, y, params, cv=5):
         clf.fit(
             X_train,
             y_train,
-            cat_features=[X.shape[1] - 1],
         )
 
         y_pred = clf.predict(X_valid)
