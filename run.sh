@@ -1,3 +1,4 @@
 #!/bin/bash
 
-PYTHONPATH="./lib/" python "$@"
+dir=$(dirname "$0")
+PYTHONPATH="$dir/lib/" python3.6 "$@"
