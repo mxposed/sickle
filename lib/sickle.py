@@ -123,7 +123,7 @@ def load_mca_lung(annotation):
 def load_sc_scanpy(exp_name, batch_label):
     exp_dir = os.path.join(dirs['root'], exp_name)
 
-    data = sc.read(os.path.join(exp_dir, '/matrix.mtx'), cache=True).T
+    data = sc.read(os.path.join(exp_dir, 'matrix.mtx'), cache=True).T
     data.var_names = pd.read_table(
         os.path.join(exp_dir, 'genes.tsv'),
         header=None
