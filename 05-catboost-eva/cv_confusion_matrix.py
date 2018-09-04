@@ -43,8 +43,19 @@ def draw(cv_num):
     confusion = results_matrix(y_test, y_pred, x_cols=mca_clusters.Annotation, y_cols=mca_clusters.Annotation)
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(1, 1, 1)
-    cbar_ax = fig.add_axes((0.05, 0.05, 0.05, 0.2))
-    ax = seaborn.heatmap(confusion, square=True, ax=ax, cbar_ax=cbar_ax)
+    cbar_ax = fig.add_axes((0.08, 0.2, 0.2, 0.02))
+    ax = seaborn.heatmap(
+        confusion,
+        square=True,
+        ax=ax,
+        cmap="Blues",
+        cbar_ax=cbar_ax,
+        cbar_kws={
+            'orientation': 'horizontal',
+        }
+    )
+    ax.figure.axes[-1].tick_params(direction='inout', length=10)
+    ax.figure.axes[-1].set_xlabel('Fraction of cells in row', fontsize=13)
     ax.set_xlabel('Predicted cell type', fontsize=16)
     ax.set_ylabel('Annotated cell type', fontsize=16)
 
