@@ -2,12 +2,17 @@ import display_settings
 
 import collections
 import os
+import warnings
 
 import numpy as np
 import pandas as pd
 import scanpy.api as sc
+import sklearn.exceptions
 import sklearn.metrics
 
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=sklearn.exceptions.UndefinedMetricWarning)
 
 dirs = {}
 
@@ -41,7 +46,7 @@ class Mapping:
                 self.src_mult.add(name)
 
         for name, count in collections.Counter(table['to']).items():
-            if count > 1:
+            if count > 1 and name != 'Novel cell type':
                 self.dst_mult.add(name)
 
         self.src_replace = {}
@@ -50,7 +55,10 @@ class Mapping:
             src = table.loc[idx, 'from']
             dst = table.loc[idx, 'to']
             if src in self.src_mult:
-                self.dst_replace[dst] = src
+                if dst in self.dst_replace:
+                    self.src_replace[src] = self.dst_replace[dst]
+                else:
+                    self.dst_replace[dst] = src
             else:
                 self.src_replace[src] = dst
 
@@ -61,10 +69,12 @@ class Mapping:
             if len(rows_src) == 1 and rows_src['to'].iloc[0] == 'Novel cell type':
                 return 'novel'
             return 'mistake'
-        if source in self.src_mult:
-            return 'increase'
         if dest in self.dst_mult:
             return 'decrease'
+        if source in self.src_mult:
+            return 'increase'
+        if dest == 'Novel cell type':
+            return 'novel'
         return 'correct'
 
     def f1(self, true, pred):
@@ -166,3 +176,19 @@ def load_sc(batch_label):
     exp['cluster'] = data.obs.cluster[exp.index]
     exp = exp[~exp.cluster.isna()]
     return exp[exp.columns[:-1]], exp.cluster
+
+
+def load_clusters(reference):
+    clusters = pd.read_csv(os.path.join(
+        dirs['code'],
+        '00-metadata',
+        '{}_clusters.csv'.format(reference)
+    ), index_col=0, header=None)
+    clusters.index = clusters.index.str.replace('C', '').astype(int)
+    return clusters
+
+
+def load_predictions(path, reference):
+    preds = pd.read_csv(path, index_col=0)
+    preds.columns = load_clusters(reference).iloc[:, 0]
+    return preds
