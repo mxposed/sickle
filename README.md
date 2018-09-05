@@ -1,7 +1,7 @@
 # Fast and consistent annotation of scRNA-seq experiments by predicting novel and reference cell types with catboost
 Code for M.Sc. thesis project
 
-##### Dependencies
+#### Dependencies
 Code is written in python 3 and R. Python requirements are in `requirements.txt`, R requirements are as follow:
   * Seurat
   * scmap
@@ -20,12 +20,12 @@ Datasets are expected to be in the parent folder of this code root, like this:
   * `SC02/`
   * `SC03/`
 
-##### General notes
+#### General notes
 This repo contains several data files in `00-metadata`, and other data files are cached after they were created by scripts, and can be reproduced from datasets.
 
-Python scripts are expected to be run with `run.sh <script>` (it add `lib` to PYTHONPATH).
+Python scripts are expected to be run with `run.sh <script>` (it adds `lib` to PYTHONPATH).
 
-##### Code structure
+#### Code structure
 `lib`: common code extracted from python scripts. Includes loading datasets, predictions, mapping and quantifying cross-dataset predictions, drawing Sankey diagrams.
 
 `00-metadata`: data files with cluster names and cluster correspondence between datasets
