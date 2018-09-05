@@ -36,7 +36,7 @@ Python scripts are expected to be run with `run.sh <script>` (it add `lib` to PY
 
 `03-evaluate-seurat`: code to test CCA-based batch correction approach from Seurat between SC01 and SC03. Butler,A. et al. (2018) Integrating single-cell transcriptomic data across different conditions, technologies, and species. Nat. Biotechnol., 36, 411–420.
 
-`04-evaluate-scmap`: code to test scmap projection method. Code to quantify and plot SC03 projection onto SC02 dataset with scmap-cluster method, Figure 10 (left part).
+`04-evaluate-scmap`: code to test scmap projection method. Code to quantify and plot SC03 projection onto SC02 dataset with scmap-cluster method, Figure 10 (left part). Kiselev,V.Y. et al. (2018) Scmap: Projection of single-cell RNA-seq data across data sets. Nat. Methods, 15, 359–362.
 
 `05-catboost-eva`: evaluation of catboost on MCA dataset using nested-cv. Code to get baseline predictions. Plotting of Figure 3.
 
