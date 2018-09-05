@@ -34,16 +34,10 @@ def main():
     for i, (tr_idx, test_idx) in enumerate(splits):
         y_train = y.iloc[tr_idx]
         y_test = y.iloc[test_idx]
-        for j, (tr_idx, val_idx) in enumerate(skf.split(np.zeros(len(y_train)),
-                                                        y_train)):
-            y_train_inner = y_train.iloc[tr_idx]
-            y_val = y_train.iloc[val_idx]
-            pd.Series(y_train_inner.index).to_csv(dump(
-                'cv{}-{}-train.csv'.format(i + 1, j + 1)
-            ))
-            pd.Series(y_val.index).to_csv(dump(
-                'cv{}-{}-val.csv'.format(i + 1, j + 1)
-            ))
+        
+        pd.Series(y_train.index).to_csv(dump(
+            'cv{}-train.csv'.format(i + 1)
+        ))
         pd.Series(y_test.index).to_csv(dump(
             'cv{}-test.csv'.format(i + 1)
         ))

@@ -24,17 +24,17 @@ main <- function() {
   l1 <- read.csv(file.path(ROOT, 'rmbatch_dge', 'Lung1_rm.batch_dge.txt'), sep=' ')
   l2 <- read.csv(file.path(ROOT, 'rmbatch_dge', 'Lung2_rm.batch_dge.txt'), sep=' ')
   l3 <- read.csv(file.path(ROOT, 'rmbatch_dge', 'Lung3_rm.batch_dge.txt'), sep=' ')
-  
+
   l1 <- as.data.frame(t(l1))
   l2 <- as.data.frame(t(l2))
   l3 <- as.data.frame(t(l3))
-  
+
   lung <- bind_rows(lapply(list(l1, l2, l3), add_rownames))
   rownames(lung) <- lung$rowname
   lung$rowname <- NULL
   lung[is.na(lung)] <- 0
   lungs <- CreateSeuratObject(as.data.frame(t(lung)))
-  
+
   cell_types <- read.csv(file.path(ROOT, 'MCA_assign.csv'))
   cell_types <- cell_types[cell_types$Tissue == 'Lung',]
   cell_types$ClusterID <- as.numeric(sub('Lung_', '', cell_types$ClusterID))
@@ -43,11 +43,13 @@ main <- function() {
 
   for (i in 1:5) {
     train_cells <- read.csv(file.path(
-      CURRENT_DIR, 
+      CURRENT_DIR,
+      'cv-idx',
       sprintf('cv%d-train.csv', i)
     ), header=FALSE)
     test_cells <- read.csv(file.path(
-      CURRENT_DIR, 
+      CURRENT_DIR,
+      'cv-idx',
       sprintf('cv%d-test.csv', i)
     ), header=FALSE)
     train <- SubsetData(lungs, cells.use = as.vector(train_cells$V2))
@@ -62,7 +64,7 @@ main <- function() {
     pred <- data.frame(pred = pred)
     rownames(pred) <- test@cell.names
     write.csv(pred, file.path(
-      CURRENT_DIR, 
+      CURRENT_DIR,
       sprintf('cv%d-preds-seurat.csv', i)
     ))
   }
