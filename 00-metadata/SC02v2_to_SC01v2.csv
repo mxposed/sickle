@@ -11,6 +11,8 @@ from,to
 "Endothelial cells (arteriolar)","Endothelial cells (arteriolar)"
 "Monocytes, non-classical","Monocytes, non-classical"
 "Dendritic cells, type 2","Dendritic cells, type 2"
+"Dendritic cells, type 2","Dendritic cells, type 1"
+"Dendritic cells, type 2","Ccr7+ dendritic cells"
 "Fibroblasts","Fibroblasts"
 "Peribronchial interstitial macrophages","Peribronchial interstitial macrophages"
 "Ciliated cells/Club cells","Ciliated cells"
