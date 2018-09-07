@@ -54,4 +54,4 @@ Python scripts are expected to be run with `run.sh <script>` (it adds `lib` to P
 
 `12-catboost-mca`: code to select and train best model for MCA; predict SC01, SC02 and SC03, plot and quantify; run correlation analysis and plot correlation plots.
 
-`13-cluster-mca`: cell type assignment table for our clustering of MCA Lung dataset. Clustering itself was done by Dr. Misharin (https://osf.io/agc98/)
+`13-cluster-mca`: cell type assignment table for our clustering of MCA Lung dataset. Clustering itself is available at https://osf.io/agc98/
