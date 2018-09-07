@@ -21,7 +21,7 @@ def heatmap(predictions, figsize=(16, 20)):
     preds.sort_values(['cluster', 'max_score'], ascending=[True, False], inplace=True)
     preds = predictions.reindex(preds.index)
     plt.figure(figsize=figsize)
-    ax = seaborn.heatmap(preds, yticklabels=[])
+    ax = seaborn.heatmap(preds, yticklabels=[], rasterized=True)
     fig = ax.get_figure()
     fig.tight_layout()
     return fig
@@ -55,7 +55,7 @@ def plot_second_maxes(maxes):
     return ax
 
 
-def process(exp, reference, query):
+def process(exp, reference, query, tag=None):
     exp_clusters = sickle.assignments(query)
 
     clusters = pd.read_csv('{}/{}_clusters.csv'.format(
@@ -82,23 +82,25 @@ def process(exp, reference, query):
     hmap = heatmap(preds)
     hmap.suptitle('Predictions for {} dataset'.format(query))
     hmap.subplots_adjust(top=0.88)
-    hmap.savefig(os.path.join(CUR_DIR, '{}-heatmap.png'.format(exp)))
+    hmap.savefig(os.path.join(CUR_DIR, '{}-heatmap.pdf'.format(exp)))
 
     if query == 'SC03':
         hmap = heatmap(preds.loc[exp_clusters.index[exp_clusters == 7],:], figsize=(16, 12))
         hmap.suptitle('Predictions for SC03 Plasma cells')
         hmap.subplots_adjust(top=0.88)
-        hmap.savefig(os.path.join(CUR_DIR, '{}-plasma-heatmap.png'.format(exp)))
+        hmap.savefig(os.path.join(CUR_DIR, '{}-plasma-heatmap.pdf'.format(exp)))
 
+    seaborn.set(font_scale=1)
     mapping = sickle.mapping(query, reference)
     s = sankey.sankey(
         clusters.iloc[:, 0].loc[exp_clusters],
         preds.idxmax(axis=1),
         alpha=.7,
         left_order=sickle.sankey_order(),
-        mapping=mapping
+        mapping=mapping,
+        tag=tag
     )
-    s.savefig(os.path.join(CUR_DIR, '{}-sankey.png'.format(exp)))
+    s.savefig(os.path.join(CUR_DIR, '{}-sankey.pdf'.format(exp)))
 
     if mapping:
         open(os.path.join(CUR_DIR, '{}-f1.txt'.format(exp)), 'w').write(
@@ -110,7 +112,7 @@ def process(exp, reference, query):
 
 
 def main():
-    process('sc02', 'SC01v2', 'SC02v2')
+    process('sc02', 'SC01v2', 'SC02v2', tag='B')
 
 
 if __name__ == '__main__':

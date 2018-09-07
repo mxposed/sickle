@@ -13,7 +13,7 @@ import utils
 CUR_DIR, ROOT = sickle.paths(__file__)
 
 
-def heatmap(predictions, figsize=(16, 20)):
+def heatmap(predictions, label=None, figsize=(20, 8), subfig=None):
     preds = predictions.copy()
     preds.columns = list(range(len(preds.columns)))
     preds['cluster'] = preds.idxmax(axis=1)
@@ -21,10 +21,35 @@ def heatmap(predictions, figsize=(16, 20)):
     preds.sort_values(['cluster', 'max_score'], ascending=[True, False], inplace=True)
     preds = predictions.reindex(preds.index)
     plt.figure(figsize=figsize)
-    ax = seaborn.heatmap(preds, yticklabels=[])
-    fig = ax.get_figure()
-    fig.tight_layout()
-    return fig
+    seaborn.set(font_scale=2.2)
+    ax = seaborn.heatmap(
+        preds.T,
+        xticklabels=[],
+        cmap="Blues",
+        cbar_kws={
+            'ticks': [0, 0.2, 0.4, 0.6, 0.8, 1]
+        },
+        rasterized=True
+    )
+
+    if label:
+        ax.set_xlabel(label)
+    else:
+        ax.set_xlabel('')
+    ax.set_ylabel('')
+    ax.collections[0].set_clim(0, 1)
+
+    ax.figure.axes[-1].tick_params(labelsize=10)
+    ax.figure.axes[-1].set_ylabel('Prediction probability')
+
+    ax.figure.tight_layout()
+    ax.figure.subplots_adjust(right=1.04)
+    if subfig:
+        text_ax = ax.figure.add_axes((0.02, 0.9, 0.05, 0.05), frame_on=False)
+        text_ax.set_axis_off()
+        plt.text(0, 0, subfig, fontsize=30, transform=text_ax.transAxes, weight='black')
+    seaborn.set(font_scale=1)
+    return ax.figure
 
 
 def get_second_maxes(predictions):
@@ -55,7 +80,7 @@ def plot_second_maxes(maxes):
     return ax
 
 
-def process(exp, reference, query):
+def process(exp, reference, query, tag=None):
     exp_clusters = sickle.assignments(query)
 
     clusters = pd.read_csv('{}/{}_clusters.csv'.format(
@@ -69,26 +94,35 @@ def process(exp, reference, query):
         reference
     )
 
-    second_maxes = get_second_maxes(preds)
-    maxes_heatmap = plot_second_maxes(second_maxes)
-    maxes_heatmap.savefig(os.path.join(CUR_DIR, '{}-second-max-heatmap.png'.format(exp)))
-
-    if query == 'SC03':
-        plasma_second_maxes = get_second_maxes(preds.loc[exp_clusters.index[exp_clusters == 7],:])
-        maxes_heatmap = plot_second_maxes(plasma_second_maxes)
-        plt.suptitle('Second max predictions for Plasma cells')
-        maxes_heatmap.savefig(os.path.join(CUR_DIR, '{}-plasma-second-max-heatmap.png'.format(exp)))
+    # second_maxes = get_second_maxes(preds)
+    # maxes_heatmap = plot_second_maxes(second_maxes)
+    # maxes_heatmap.savefig(os.path.join(CUR_DIR, '{}-second-max-heatmap.png'.format(exp)))
+    #
+    # if query == 'SC03':
+    #     plasma_second_maxes = get_second_maxes(preds.loc[exp_clusters.index[exp_clusters == 7],:])
+    #     maxes_heatmap = plot_second_maxes(plasma_second_maxes)
+    #     plt.suptitle('Second max predictions for Plasma cells')
+    #     maxes_heatmap.savefig(os.path.join(CUR_DIR, '{}-plasma-second-max-heatmap.png'.format(exp)))
 
     hmap = heatmap(preds)
-    hmap.suptitle('Predictions for {} dataset'.format(query))
-    hmap.subplots_adjust(top=0.88)
-    hmap.savefig(os.path.join(CUR_DIR, '{}-heatmap.png'.format(exp)))
+    hmap.savefig(os.path.join(CUR_DIR, '{}-heatmap.pdf'.format(exp)))
 
     if query == 'SC03':
-        hmap = heatmap(preds.loc[exp_clusters.index[exp_clusters == 7], :], figsize=(16, 12))
-        hmap.suptitle('Predictions for SC03 Plasma cells')
-        hmap.subplots_adjust(top=0.88)
-        hmap.savefig(os.path.join(CUR_DIR, '{}-plasma-heatmap.png'.format(exp)))
+        hmap = heatmap(
+            preds.loc[exp_clusters.index[exp_clusters == 2], :],
+            label=r'$\it{B\ cells}$ from SC03 dataset',
+            figsize=(16, 8),
+            subfig='A'
+        )
+        hmap.savefig(os.path.join(CUR_DIR, '{}-bcells-heatmap.pdf'.format(exp)))
+
+        hmap = heatmap(
+            preds.loc[exp_clusters.index[exp_clusters == 7], :],
+            label=r'$\it{Plasma\ cells}$ from SC03 dataset',
+            figsize=(16, 8),
+            subfig='B'
+        )
+        hmap.savefig(os.path.join(CUR_DIR, '{}-plasma-heatmap.pdf'.format(exp)))
 
     mapping = sickle.mapping(query, reference)
     s = sankey.sankey(
@@ -96,9 +130,10 @@ def process(exp, reference, query):
         preds.idxmax(axis=1),
         alpha=.7,
         left_order=sickle.sankey_order(),
-        mapping=mapping
+        mapping=mapping,
+        tag=tag
     )
-    s.savefig(os.path.join(CUR_DIR, '{}-sankey.png'.format(exp)))
+    s.savefig(os.path.join(CUR_DIR, '{}-sankey.pdf'.format(exp)))
 
     if mapping:
         open(os.path.join(CUR_DIR, '{}-f1.txt'.format(exp)), 'w').write(
@@ -112,7 +147,7 @@ def process(exp, reference, query):
 def main():
     process('sc03v2', 'SC02v2', 'SC03')
     #process('sc03v2-noisy', 'SC02v2', 'SC03')
-    process('sc01', 'SC02v2', 'SC01v2')
+    process('sc01', 'SC02v2', 'SC01v2', tag='A')
 
 
 if __name__ == '__main__':

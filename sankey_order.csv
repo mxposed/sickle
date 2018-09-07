@@ -1,0 +1,32 @@
+0,order
+C0,Alveolar type II cells
+C1,B cells
+C2,Alveolar macrophages
+C3,T cells
+,T cells (1)
+,T cells (2)
+C5,T cells/NKT cells/ILC
+C4,Endothelial cells (arteriolar)
+C6,NK cells
+C7,"Monocytes, non-classical"
+,"Monocytes, classical/non-classical"
+C8,Endothelial cells (capillary)
+C9,"Dendritic cells, type 2"
+,Plasma cells
+C10,Peribronchial interstitial macrophages
+C11,Fibroblasts
+C12,Alveolar type I cells
+C13,"Monocytes, classical"
+C14,"Dendritic cells, type 1"
+C15,Proliferating/cycling cells
+C16,Neutrophils
+,Ciliated cells/Club cells
+C17,Club cells
+C18,Ciliated cells
+C19,Smooth muscle cells
+,Plasmacytoid dendritic cells
+C20,Alveolar macrophages (doublets)
+C21,Ccr7+ dendritic cells
+,Mast cells
+,Mesothelial cells
+,Lymphatics
