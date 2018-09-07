@@ -1,4 +1,4 @@
-# Fast and consistent annotation of scRNA-seq experiments by predicting novel and reference cell types with catboost
+# Evaluation of machine learning strategies for classification and unbiased discovery of the new cell types in the single cell RNA-seq datasets
 Code for M.Sc. thesis project
 
 ## Dependencies
