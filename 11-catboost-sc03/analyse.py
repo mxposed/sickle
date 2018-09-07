@@ -20,7 +20,7 @@ def heatmap(predictions, figsize=(16, 20)):
     preds.sort_values(['cluster', 'max_score'], ascending=[True, False], inplace=True)
     preds = predictions.reindex(preds.index)
     plt.figure(figsize=figsize)
-    ax = seaborn.heatmap(preds, yticklabels=[])
+    ax = seaborn.heatmap(preds, yticklabels=[], rasterized=True)
     fig = ax.get_figure()
     fig.tight_layout()
     return fig
@@ -64,22 +64,23 @@ def process(exp, reference, query):
         reference
     )
 
-    second_maxes = get_second_maxes(preds)
-    maxes_heatmap = plot_second_maxes(second_maxes)
-    maxes_heatmap.savefig(os.path.join(CUR_DIR, '{}-second-max-heatmap.png'.format(exp)))
-
-    if query == 'SC03':
-        plasma_second_maxes = get_second_maxes(preds.loc[exp_clusters.index[exp_clusters == 7],:])
-        maxes_heatmap = plot_second_maxes(plasma_second_maxes)
-        maxes_heatmap.savefig(os.path.join(CUR_DIR, '{}-plasma-second-max-heatmap.png'.format(exp)))
+    # second_maxes = get_second_maxes(preds)
+    # maxes_heatmap = plot_second_maxes(second_maxes)
+    # maxes_heatmap.savefig(os.path.join(CUR_DIR, '{}-second-max-heatmap.png'.format(exp)))
+    #
+    # if query == 'SC03':
+    #     plasma_second_maxes = get_second_maxes(preds.loc[exp_clusters.index[exp_clusters == 7],:])
+    #     maxes_heatmap = plot_second_maxes(plasma_second_maxes)
+    #     maxes_heatmap.savefig(os.path.join(CUR_DIR, '{}-plasma-second-max-heatmap.png'.format(exp)))
 
     hmap = heatmap(preds)
-    hmap.savefig(os.path.join(CUR_DIR, '{}-heatmap.png'.format(exp)))
+    hmap.savefig(os.path.join(CUR_DIR, '{}-heatmap.pdf'.format(exp)))
 
     if query == 'SC03':
         hmap = heatmap(preds.loc[exp_clusters.index[exp_clusters == 7],:], figsize=(16, 12))
-        hmap.savefig(os.path.join(CUR_DIR, '{}-plasma-heatmap.png'.format(exp)))
+        hmap.savefig(os.path.join(CUR_DIR, '{}-plasma-heatmap.pdf'.format(exp)))
 
+    seaborn.set(font_scale=1)
     mapping = sickle.mapping(query, reference)
     s = sankey.sankey(
         clusters.iloc[:, 0].loc[exp_clusters],
@@ -88,7 +89,7 @@ def process(exp, reference, query):
         left_order=sickle.sankey_order(),
         mapping=mapping
     )
-    s.savefig(os.path.join(CUR_DIR, '{}-sankey.png'.format(exp)))
+    s.savefig(os.path.join(CUR_DIR, '{}-sankey.pdf'.format(exp)))
 
     if mapping:
         open(os.path.join(CUR_DIR, '{}-f1.txt'.format(exp)), 'w').write(

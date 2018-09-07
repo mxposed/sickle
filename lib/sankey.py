@@ -27,11 +27,12 @@ class Sankey:
     def __init__(self, x, y,
                  plot_width=8,
                  plot_height=8,
-                 gap=0.1,
+                 gap=0.12,
                  alpha=0.3,
                  fontsize='small',
                  left_order=None,
-                 mapping=None):
+                 mapping=None,
+                 tag=None):
         self.X = x
         self.Y = y
         self.plot_width = plot_width
@@ -39,6 +40,7 @@ class Sankey:
         self.gap = gap
         self.alpha = alpha
         self.fontsize = fontsize
+        self.tag = tag
         self.map = mapping is not None
         self.mapping = mapping
         self.mapping_colors = {
@@ -213,6 +215,10 @@ class Sankey:
         matplotlib.pyplot.axis('off')
         self.fig.set_figheight(self.plot_height)
         self.fig.set_figwidth(self.plot_width)
+        if self.tag:
+            text_ax = self.fig.add_axes((0.02, 0.95, 0.05, 0.05), frame_on=False)
+            text_ax.set_axis_off()
+            matplotlib.pyplot.text(0, 0, self.tag, fontsize=30, transform=text_ax.transAxes)
         #matplotlib.pyplot.tight_layout()
 
 

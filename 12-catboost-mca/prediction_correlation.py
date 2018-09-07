@@ -22,7 +22,7 @@ def pearson(x, y):
     return scipy.stats.pearsonr(x, y)
 
 
-def plot(x, y, xlabel=None, ylabel=None, file=None):
+def plot(x, y, xlabel=None, ylabel=None, tag=None, file=None):
     fig = plt.figure(figsize=(4, 4))
     plt.plot(
         x,
@@ -37,6 +37,10 @@ def plot(x, y, xlabel=None, ylabel=None, file=None):
     plt.ylabel(ylabel, fontsize=12)
     plt.tick_params(labelsize=8)
     fig.subplots_adjust(0.14, 0.12, 0.98, 0.98)
+    if tag:
+        text_ax = fig.add_axes((0.02, 0.02, 0.05, 0.05), frame_on=False)
+        text_ax.set_axis_off()
+        plt.text(0, 0, tag, fontsize=30, transform=text_ax.transAxes)
     fig.savefig(
         file,
         dpi=200,
@@ -107,6 +111,7 @@ Max corr row:
         'n_UMI': 'Number of UMIs'
     }
 
+    alpha = 'ABCDEFG'
     if plot_largest:
         for i, (cell_type, _, var, coeff, _) in enumerate(above_mean.iloc[
                 :plot_largest,
@@ -117,14 +122,15 @@ Max corr row:
                 datax['pred_score'],
                 xlabel=human_names.get(var, var),
                 ylabel='Prediction probability',
-                file=os.path.join(CUR_DIR, 'correlation{}.png'.format(i + 1)),
+                tag=alpha[i],
+                file=os.path.join(CUR_DIR, 'correlation{}.pdf'.format(i + 1)),
             )
             plot(
                 datax[var].rank(),
                 datax['pred_score'].rank(),
                 xlabel=human_names.get(var, var),
                 ylabel='Prediction probability',
-                file=os.path.join(CUR_DIR, 'correlation{}-rank.png'.format(i + 1)),
+                file=os.path.join(CUR_DIR, 'correlation{}-rank.pdf'.format(i + 1)),
             )
 
 

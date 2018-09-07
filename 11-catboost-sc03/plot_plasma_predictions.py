@@ -81,7 +81,7 @@ def plot(exp, annotation, preds, figsize=(7, 2.5), subfig=None):
         cbar_kws={
             'orientation': 'horizontal',
             'ticks': [0, 2.5, 5, 7],
-            'label': '$\it{log(normalise(}$Jchain$\it{))}$'
+            'label': 'log-normalised $\it{Jchain}$ expression'
         }
     )
     ax.figure.axes[-1].tick_params(reset=True)
@@ -102,9 +102,9 @@ def plot(exp, annotation, preds, figsize=(7, 2.5), subfig=None):
     if subfig:
         text_ax = ax.figure.add_axes((0.02, 0.1, 0.05, 0.05), frame_on=False)
         text_ax.set_axis_off()
-        plt.text(0, 0, subfig, fontsize=30, transform=text_ax.transAxes, weight='black')
+        plt.text(0, 0, subfig, fontsize=30, transform=text_ax.transAxes)
     ax.figure.subplots_adjust(left=0.3, top=1, right=0.98, bottom=0.20)
-    ax.figure.savefig(os.path.join(CUR_DIR, '{}-jchain.png'.format(exp.lower())))
+    ax.figure.savefig(os.path.join(CUR_DIR, '{}-jchain.pdf'.format(exp.lower())))
 
 
 def main():

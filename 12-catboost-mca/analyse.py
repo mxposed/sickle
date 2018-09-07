@@ -21,13 +21,13 @@ def heatmap(predictions, figsize=(16, 20)):
     preds.sort_values(['cluster', 'max_score'], ascending=[True, False], inplace=True)
     preds = predictions.reindex(preds.index)
     plt.figure(figsize=figsize)
-    ax = seaborn.heatmap(preds, yticklabels=[])
+    ax = seaborn.heatmap(preds, yticklabels=[], rasterized=True)
     fig = ax.get_figure()
     fig.tight_layout()
     return fig
 
 
-def process(exp, reference, query):
+def process(exp, reference, query, tag=None):
     exp_clusters = sickle.assignments(query)
 
     clusters = sickle.load_clusters(query)
@@ -38,17 +38,19 @@ def process(exp, reference, query):
     )
 
     hmap = heatmap(preds)
-    hmap.savefig(os.path.join(CUR_DIR, '{}-heatmap.png'.format(exp)))
+    hmap.savefig(os.path.join(CUR_DIR, '{}-heatmap.pdf'.format(exp)))
 
+    seaborn.set(font_scale=1)
     mapping = sickle.mapping(query, reference)
     s = sankey.sankey(
         clusters.iloc[:, 0].loc[exp_clusters],
         preds.idxmax(axis=1),
         alpha=.7,
         left_order=sickle.sankey_order(),
-        mapping=mapping
+        mapping=mapping,
+        tag=tag
     )
-    s.savefig(os.path.join(CUR_DIR, '{}-sankey.png'.format(exp)))
+    s.savefig(os.path.join(CUR_DIR, '{}-sankey.pdf'.format(exp)))
 
     if mapping:
         open(os.path.join(CUR_DIR, '{}-f1.txt'.format(exp)), 'w').write(
@@ -60,8 +62,8 @@ def process(exp, reference, query):
 
 
 def main():
-    process('sc01', 'MCA', 'SC01v2')
-    process('sc02', 'MCA', 'SC02v2')
+    process('sc01', 'MCA', 'SC01v2', tag='A')
+    process('sc02', 'MCA', 'SC02v2', tag='B')
     process('sc03', 'MCA', 'SC03')
 
 

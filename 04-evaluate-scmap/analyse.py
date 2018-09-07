@@ -3,6 +3,7 @@ import sickle
 import os
 
 import pandas as pd
+import seaborn
 
 import sankey
 
@@ -10,7 +11,7 @@ import sankey
 CUR_DIR, ROOT = sickle.paths(__file__)
 
 
-def process(exp, reference, query):
+def process(exp, reference, query, tag=None):
     exp_clusters = sickle.assignments(query)
 
     clusters = sickle.load_clusters(query)
@@ -21,15 +22,17 @@ def process(exp, reference, query):
     )
     preds = preds.reindex(exp_clusters.index)
 
+    seaborn.set(font_scale=1)
     mapping = sickle.mapping(query, reference)
     s = sankey.sankey(
         clusters.iloc[:, 0].loc[exp_clusters],
         preds.x,
         alpha=.7,
         left_order=sickle.sankey_order(),
-        mapping=mapping
+        mapping=mapping,
+        tag=tag
     )
-    s.savefig(os.path.join(CUR_DIR, '{}-sankey.png'.format(exp)))
+    s.savefig(os.path.join(CUR_DIR, '{}-sankey.pdf'.format(exp)))
 
     if mapping:
         open(os.path.join(CUR_DIR, '{}-f1.txt'.format(exp)), 'w').write(
@@ -41,7 +44,7 @@ def process(exp, reference, query):
 
 
 def main():
-    process('sc03-cluster', 'SC02v2', 'SC03')
+    process('sc03-cluster', 'SC02v2', 'SC03', tag='A')
     process('sc03-cell', 'SC02v2', 'SC03')
 
 

@@ -55,7 +55,8 @@ def heatmap(predictions, label=None, figsize=(20, 8), threshold=0):
         cmap="Blues",
         cbar_kws={
             'ticks': [0, 0.2, 0.4, 0.6, 0.8, 1]
-        }
+        },
+        rasterized=True
     )
 
     if label:
@@ -116,7 +117,7 @@ def calc_spe_sens(truth, preds, threshold=0):
     return specificity, sensitivity, precision
 
 
-def process(exp, reference, query):
+def process(exp, reference, query, tag=None):
     exp_clusters = sickle.assignments(query)
 
     clusters = sickle.load_clusters(query)
@@ -124,14 +125,14 @@ def process(exp, reference, query):
     preds = load_predictions(os.path.join(CUR_DIR, '{}.csv'.format(exp)))
 
     hmap = heatmap(preds)
-    hmap.savefig(os.path.join(CUR_DIR, '{}-heatmap.png'.format(exp)))
+    hmap.savefig(os.path.join(CUR_DIR, '{}-heatmap.pdf'.format(exp)))
 
     hmap = heatmap(
         preds.loc[exp_clusters.index[exp_clusters == 7], :],
         label='$\it{Plasma\ cells}$ from SC03 dataset',
         figsize=(16, 8)
     )
-    hmap.savefig(os.path.join(CUR_DIR, '{}-plasma-heatmap.png'.format(exp)))
+    hmap.savefig(os.path.join(CUR_DIR, '{}-plasma-heatmap.pdf'.format(exp)))
 
     mapping = sickle.mapping(query, reference)
     s = sankey.sankey(
@@ -139,9 +140,10 @@ def process(exp, reference, query):
         preds.idxmax(axis=1),
         alpha=.7,
         left_order=sickle.sankey_order(),
-        mapping=mapping
+        mapping=mapping,
+        tag=tag
     )
-    s.savefig(os.path.join(CUR_DIR, '{}-sankey.png'.format(exp)))
+    s.savefig(os.path.join(CUR_DIR, '{}-sankey.pdf'.format(exp)))
 
     if mapping:
         open(os.path.join(CUR_DIR, '{}-f1.txt'.format(exp)), 'w').write(
@@ -159,7 +161,7 @@ def process(exp, reference, query):
 
 def main():
     process('sc03-it30-oth1', 'SC02v2', 'SC03')
-    process('sc03-it50-oth4', 'SC02v2', 'SC03')
+    process('sc03-it50-oth4', 'SC02v2', 'SC03', tag='B')
     #process('sc03-it50-oth4', threshold=0.134)
     process('sc03-it50-oth4-pro', 'SC02v2', 'SC03')
     process('sc03-it100-oth2', 'SC02v2', 'SC03')

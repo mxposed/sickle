@@ -60,7 +60,7 @@ def draw(cv_num):
     ax.set_ylabel('Annotated cell type', fontsize=16)
 
     plt.tight_layout()
-    ax.figure.savefig(os.path.join(CUR_DIR, 'cv{}-confusion.png'.format(cv_num)))
+    ax.figure.savefig(os.path.join(CUR_DIR, 'cv{}-confusion.pdf'.format(cv_num)))
 
 
 def main():
